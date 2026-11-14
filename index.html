@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d1424">
+  <meta name="description" content="MVP Boss Timer: จดเวลาตายจาก Tomb คำนวณเกิดใหม่ 2 ชั่วโมง และแชร์ข้อมูลร่วมกัน">
+  <title>MVP Boss Timer | Tomb Tracker</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <script defer src="assets/bosses.js"></script>
+  <script defer src="config.js"></script>
+  <script defer src="assets/app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-icon" aria-hidden="true">✦</span>
+        <div class="brand-copy">
+          <strong>MVP <span>Boss Timer</span></strong>
+          <small>TOMB TRACKER <i class="dot"></i> RESPAWN +2H</small>
+        </div>
+      </div>
+      <div class="top-actions">
+        <div id="modeBadge" class="mode mode-local" title="สถานะการเชื่อมต่อ">● <span>กำลังเริ่ม...</span></div>
+        <button type="button" id="reloadBtn" class="icon-btn" title="โหลดข้อมูลใหม่" aria-label="รีเฟรชข้อมูล">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8M4 4v4h4M4 13a8 8 0 0 0 14 5l2-2m0 4v-4h-4"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="introline">
+      <div><h1>จดเวลา Tomb <em>→</em> รอบเกิดถัดไป</h1><p>เลือกบอสและแมพ · กรอกเวลาตาย · ดูลำดับเวลาเกิดอัตโนมัติ</p></div>
+      <div class="timezone">เวลาประเทศไทย <b>UTC+7</b></div>
+    </div>
+    <div id="localNotice" class="notice" hidden>⚠ ตอนนี้เป็น <b>โหมดทดลองในเครื่อง</b> — ผู้เล่นคนอื่นจะยังไม่เห็นข้อมูล กรุณาตั้งค่า URL ของ Worker ใน <code>config.js</code> เพื่อเปิดใช้งานร่วมกัน</div>
+    <div id="errorNotice" class="notice error" role="alert" hidden></div>
+
+    <div class="stats" aria-label="สรุปจำนวนบอส">
+      <div class="stat"><span class="stat-icon mint">◷</span><div><b id="statWaiting">0</b><small>กำลังรอเกิด</small></div></div>
+      <div class="stat"><span class="stat-icon amber">⌁</span><div><b id="statOverdue">0</b><small>เลยกำหนด</small></div></div>
+      <div class="stat"><span class="stat-icon violet">✦</span><div><b id="statAll">0</b><small>มีการบันทึก</small></div></div>
+      <div class="stat stat-clock"><span class="stat-icon blue">◉</span><div><b id="thaiClock">--:--:--</b><small>เวลาเซิร์ฟเวอร์ (ไทย)</small></div></div>
+    </div>
+
+    <main class="layout">
+      <section class="panel composer" aria-labelledby="formTitle">
+        <div class="panel-heading"><div class="heading-left"><span class="kicker">01</span><div><h2 id="formTitle">บันทึกเวลาบอส</h2><p>เวลาที่อ่านได้จาก Tomb ครั้งล่าสุด</p></div></div><span class="chip soft">+ 2 ชั่วโมง</span></div>
+        <form id="timerForm" autocomplete="off">
+          <div class="field">
+            <label for="bossSearch">ค้นหาบอส <span class="required">*</span></label>
+            <input id="bossSearch" type="search" placeholder="พิมพ์ชื่อบอส เช่น Baphomet" spellcheck="false" autocomplete="off" aria-describedby="bossHint">
+            <div id="bossHint" class="helper">มีรายชื่อบอส 50 ตัวจาก RateMyServer (Pre-Re)</div>
+          </div>
+          <div class="field">
+            <label for="bossSelect">ชื่อบอส <span class="required">*</span></label>
+            <select id="bossSelect" required><option value="">— เลือกบอส —</option></select>
+          </div>
+          <div class="field">
+            <div class="label-row"><label for="mapSelect">แมพที่พบ Tomb <span class="required">*</span></label><a id="mapLink" target="_blank" rel="noopener noreferrer" href="https://ratemyserver.net/?page=mob_db" hidden>ดูแมพใน RMS ↗</a></div>
+            <select id="mapSelect" required disabled><option value="">— เลือกบอสก่อน —</option></select>
+            <div id="mapInfo" class="helper">บอสบางตัวมีหลายแมพ ระบบจะแยกเวลาแต่ละแมพ</div>
+          </div>
+          <div class="time-box">
+            <div class="label-row"><label>วัน / เวลาตายบน Tomb <span class="required">*</span></label><div class="day-pills"><button type="button" id="todayBtn" class="tiny active">วันนี้</button><button type="button" id="yesterdayBtn" class="tiny">เมื่อวาน</button></div></div>
+            <div class="time-inputs"><input type="date" id="deathDate" required aria-label="วันที่บอสตาย"><input type="time" id="deathTime" step="60" required aria-label="เวลาที่บอสตาย"></div>
+            <div class="helper">ใช้วันและเวลาตามในเกม (เวลาไทย) — ถ้าตายข้ามวันให้เลือกวันที่ให้ถูกต้อง</div>
+          </div>
+          <div id="preview" class="preview" aria-live="polite"><div><small>คาดว่าจะเกิดอีกครั้ง</small><strong id="previewTime">— : —</strong></div><span id="previewDay">กรอกเวลาตายก่อน</span></div>
+          <div class="field optional"><label for="editorName">ชื่อผู้บันทึก <span class="muted">(ไม่บังคับ)</span></label><input type="text" id="editorName" maxlength="24" placeholder="เช่น Hunter01" autocomplete="nickname"></div>
+          <div class="form-buttons"><button type="submit" id="saveBtn" class="btn-primary">✚ บันทึกเวลาบอส</button><button type="button" id="clearBtn" class="btn-outline">ล้างฟอร์ม</button></div>
+          <p class="form-foot">ไม่ต้องสมัครสมาชิก · ข้อมูลใหม่ของบอส/แมพเดิมจะเขียนทับเวลาล่าสุด</p>
+        </form>
+      </section>
+
+      <section class="panel entries" aria-labelledby="listTitle">
+        <div class="panel-heading list-heading"><div class="heading-left"><span class="kicker">02</span><div><h2 id="listTitle">ตารางเวลาเกิดบอส</h2><p>แสดงเฉพาะบอสที่มีคนจด · เรียงเวลาเกิดที่ใกล้ที่สุดก่อน</p></div></div><span id="syncStamp" class="synclabel">ยังไม่ได้โหลด</span></div>
+        <div class="toolbar">
+          <div class="tabs" role="group" aria-label="กรองสถานะ"><button type="button" class="tab active" data-filter="all">ทั้งหมด</button><button type="button" class="tab" data-filter="waiting">รอเกิด</button><button type="button" class="tab" data-filter="overdue">เลยกำหนด</button></div>
+          <input id="listSearch" type="search" placeholder="⌕ ค้นหาบอส / แมพ" aria-label="ค้นหาบอสหรือแมพ">
+        </div>
+        <div id="records" class="records" aria-live="polite"><div class="empty"><span class="empty-symbol">◌</span><h3>ยังไม่มีเวลาบอส</h3><p>เมื่อมีคนกรอก Tomb ระบบจะแสดงเวลาบอสเกิดตรงนี้</p></div></div>
+        <div class="list-bottom"><span id="visibleCount">แสดง 0 รายการ</span><span>อัปเดตทุก 15 วินาที</span></div>
+      </section>
+    </main>
+
+    <footer class="footer"><span>MVP Boss Timer · MVP v1.0</span><span>ข้อมูลรายชื่อ/แมพ: <a href="https://ratemyserver.net/index.php?mob_search=Search&amp;mvp=1&amp;nspawn=1&amp;page=mob_db" target="_blank" rel="noopener noreferrer">RateMyServer (Pre-Re) ↗</a> · เวลารอบเกิด 2 ชม. ตามกติกาเซิร์ฟเวอร์นี้</span></footer>
+  </div>
+  <dialog id="deleteDialog" class="confirm"><div class="dialog-inner"><div class="dialog-icon">!</div><h3>ลบเวลาบอสนี้?</h3><p id="deleteMessage"></p><div class="dialog-actions"><button id="cancelDelete" type="button" class="btn-outline">ยกเลิก</button><button id="confirmDelete" type="button" class="btn-danger">ยืนยันลบ</button></div></div></dialog>
+  <div id="toast" role="status" aria-live="polite" class="toast" hidden></div>
+</body>
+</html>
