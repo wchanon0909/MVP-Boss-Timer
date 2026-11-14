@@ -235,7 +235,10 @@ select:disabled { opacity:.65; cursor:not-allowed; }
 @media(prefers-reduced-motion:reduce) { * { scroll-behavior:auto!important; transition:none!important; } }
 
 </style>
-  <script src="assets/bosses.js"></script>
+  <script>
+// Boss names and maps adapted from the private-server list provided by the site owner.
+window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside Pyramid B2"]]},{"id":1785,"name":"Atroce1","maps":[["ra_fild03","The Plain of Ida"]]},{"id":1785,"name":"Atroce2","maps":[["ra_fild02","Od Canyon"]]},{"id":1785,"name":"Atroce3","maps":[["ra_fild04","Audhumbla Grassland"]]},{"id":1785,"name":"Atroce4","maps":[["ve_fild02","Veins Field"]]},{"id":1039,"name":"Baphomet","maps":[["prt_maze03","Labyrinth Forest F3"]]},{"id":1874,"name":"Beelzebub","maps":[["abbey03","Cursed Monastery F3"]]},{"id":1272,"name":"Dark Lord1","maps":[["gld_dun04","Britoniah Guild Dungeon"]]},{"id":1389,"name":"Dracula","maps":[["gef_dun01","Geffen Dungeon F2"]]},{"id":1272,"name":"Dark Lord2","maps":[["gl_chyard","Glast Heim Churchyard"]]},{"id":1719,"name":"Detardeurus","maps":[["abyss_03","Abyss Lakes Cave F3"]]},{"id":1046,"name":"Doppelganger1","maps":[["gld_dun02","Luina Guild Dungeon"]]},{"id":1046,"name":"Doppelganger2","maps":[["gef_dun02","Geffen Dungeon F3"]]},{"id":1112,"name":"Drake","maps":[["treasure02","Sunken Ship F2"]]},{"id":1115,"name":"Eddga","maps":[["gld_dun01","Greenwood Lake Guild Dungeon"],["pay_fild11","Payon Forest"]]},{"id":1658,"name":"Egnigem Cenia","maps":[["lhz_dun02","Bio Laboratory F2"]]},{"id":1418,"name":"Evil Snake Lord","maps":[["gon_dun03","Arcadia"]]},{"id":1871,"name":"Fallen Bishop Hibram","maps":[["abbey02","Cursed Monastery F2"]]},{"id":1252,"name":"Garm","maps":[["xmas_fild01","Lutie Field"]]},{"id":1768,"name":"Gloom Under Night","maps":[["ra_san05","Holy Ground F5"]]},{"id":1086,"name":"Golden Thief Bug","maps":[["prt_sewb4","Prontera Culvert F4"]]},{"id":1885,"name":"Gopinich","maps":[["mosk_dun03","Dremuci Forest"]]},{"id":1832,"name":"Ifrit","maps":[["thor_v03","Thor's Volcano F3"]]},{"id":1734,"name":"Kiel D-01","maps":[["kh_dun02","Robot Factory F2"]]},{"id":1688,"name":"Lady Tanee","maps":[["ayo_dun02","Inside Ancient Shrine"]]},{"id":1147,"name":"Maya1","maps":[["anthell02","Ant Hell F2"]]},{"id":1147,"name":"Maya2","maps":[["gld_dun03","Valkyrie Guild Dungeon"]]},{"id":1059,"name":"Mistress","maps":[["mjolnir_04","Mt. Mjolnir"]]},{"id":1150,"name":"Moonlight Flower","maps":[["pay_dun04","Payon Cave F5"]]},{"id":1087,"name":"Orc Hero1","maps":[["gef_fild02","Geffen Field"]]},{"id":1087,"name":"Orc Hero2","maps":[["gef_fild14","West Orc Village"]]},{"id":1190,"name":"Orc Lord","maps":[["gef_fild10","Geffen Field"]]},{"id":1038,"name":"Osiris","maps":[["moc_pryd04","Inside Pyramid F4"]]},{"id":1157,"name":"Pharaoh","maps":[["in_sphinx5","Sphinx F5"]]},{"id":1159,"name":"Phreeoni","maps":[["moc_fild17","Sograt Desert"]]},{"id":1623,"name":"RSX-0806","maps":[["ein_dun02","Einbech Mine F2"]]},{"id":1492,"name":"Incantation Samurai","maps":[["ama_dun03","Amatsu Underground Shrine"]]},{"id":1917,"name":"Wounded Morocc","maps":[["moc_fild22","Dimensional Gorge"]]},{"id":1251,"name":"Stormy Knight","maps":[["xmas_dun02","Toy Monitoring Room"]]},{"id":1583,"name":"Tao Gunka","maps":[["beach_dun","Karu, West Cave"]]},{"id":1708,"name":"Thanatos","maps":[["thana_boss","Thanatos Tower Top (summoned)"]]},{"id":1312,"name":"Turtle General","maps":[["tur_dun04","Turtle Palace"]]},{"id":1751,"name":"Valkyrie Randgris","maps":[["odin_tem03","Odin Temple F3"]]},{"id":1685,"name":"Vesper","maps":[["jupe_core","Juperos Core"]]},{"id":1630,"name":"White Lady","maps":[["lou_dun03","Suei Long Gon"]]},{"id":2022,"name":"Nidhoggr's Shadow","maps":[["2@nyd","Nidhoggur's Nest Lv 2 (instance)"]]},{"id":1373,"name":"Lord of Death","maps":[["niflheim","Nifflheim"]]},{"id":2087,"name":"Queen Scaraba","maps":[["dic_dun02","Scaraba Hall"]]}];
+</script>
   <script src="config.js"></script>
 </head>
 <body>
@@ -303,7 +306,7 @@ select:disabled { opacity:.65; cursor:not-allowed; }
       <div class="list-bottom"><span id="visibleCount">0 รายการ</span><span id="syncStamp">กำลังโหลด...</span></div>
     </section>
   </main>
-  <footer class="footer"><span>MVP Boss Timer · v1.2</span><span>รายชื่อและแมพจาก <a href="https://ratemyserver.net/index.php?mob_search=Search&amp;mvp=1&amp;nspawn=1&amp;page=mob_db" target="_blank" rel="noopener noreferrer">RateMyServer</a> · ทุกบอส +2 ชม.</span></footer>
+  <footer class="footer"><span>MVP Boss Timer · v1.4</span><span>รายชื่อและแมพตามเซิร์ฟเวอร์นี้ · ทุกบอส +2 ชม.</span></footer>
 </div>
 <dialog id="deleteDialog" class="confirm">
   <div class="dialog-inner"><div class="dialog-icon">!</div><h3>ลบเวลาบอสนี้?</h3><p id="deleteMessage"></p><div class="dialog-actions"><button id="cancelDelete" type="button" class="btn-outline">ยกเลิก</button><button id="confirmDelete" type="button" class="btn-danger">ยืนยันลบ</button></div></div>
@@ -312,8 +315,11 @@ select:disabled { opacity:.65; cursor:not-allowed; }
 <script>
 (() => {
   'use strict';
-  const BOSSES = (window.MVP_BOSSES || []).slice().sort((a, b) => a.name.localeCompare(b.name, 'en'));
-  const BOSS_MAP = new Map(BOSSES.map(b => [String(b.id), b]));
+  const BOSSES = (window.MVP_BOSSES || []).map(b => ({...b, key: `${b.id}@${b.maps[0][0]}`})).sort((a, b) => a.name.localeCompare(b.name, 'en'));
+  // UI choice keys distinguish names that share a monster ID (e.g. Atroce1-4).
+  // The shared D1 record key remains the original (bossId, mapId) pair.
+  const BOSS_MAP = new Map(BOSSES.map(b => [b.key, b]));
+  const BOSS_BY_PAIR = new Map(BOSSES.flatMap(b => b.maps.map(m => [`${b.id}::${m[0]}`, b])));
   const API = String(window.MVP_CONFIG?.API_BASE || '').trim().replace(/\/+$/, '');
   const LOCAL_KEY = 'mvp-tomb-timers-v1';
   const DELAY = 2 * 60 * 60 * 1000;
@@ -387,8 +393,9 @@ select:disabled { opacity:.65; cursor:not-allowed; }
     return Number.isFinite(date.valueOf()) ? `${thaiTime(date)} (${relativeDay(date)})` : '—';
   }
   function keyOf(id, mapId) { return `${id}::${mapId}`; }
-  function getBoss(id) { return BOSS_MAP.get(String(id)); }
-  function getMap(bossId, mapId) { const boss=getBoss(bossId); return boss?.maps.find(m => m[0] === mapId); }
+  function getBoss(key) { return BOSS_MAP.get(String(key)); }
+  function getBossForRow(bossId, mapId) { return BOSS_BY_PAIR.get(keyOf(bossId, mapId)); }
+  function getMap(bossId, mapId) { return getBossForRow(bossId, mapId)?.maps.find(m => m[0] === mapId); }
   function isValidRow(r) { return !!(r && getMap(r.bossId,r.mapId) && Number.isFinite(Date.parse(r.tombAt)) && Number.isFinite(Date.parse(r.spawnAt))); }
   function localRead() {
     try { const rows = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]'); return Array.isArray(rows) ? rows.filter(isValidRow) : []; }
@@ -407,12 +414,12 @@ select:disabled { opacity:.65; cursor:not-allowed; }
   }
   function addBossOptions(query = '', keep = '') {
     const q=query.trim().toLowerCase();
-    const shown=BOSSES.filter(b => b.name.toLowerCase().includes(q) || String(b.id).includes(q));
-    elements.bossSelect.innerHTML='<option value="">— เลือกบอส —</option>'+shown.map(b=>`<option value="${b.id}">${safeText(b.name)}</option>`).join('');
-    if (shown.some(b=>String(b.id)===String(keep))) elements.bossSelect.value=String(keep);
-    else if (shown.length === 1 && q) elements.bossSelect.value=String(shown[0].id);
+    const shown=BOSSES.filter(b => b.name.toLowerCase().includes(q) || String(b.id).includes(q) || b.maps.some(m => m[0].toLowerCase().includes(q)));
+    elements.bossSelect.innerHTML='<option value="">— เลือกบอส —</option>'+shown.map(b=>`<option value="${safeText(b.key)}">${safeText(b.name)}</option>`).join('');
+    if (shown.some(b=>b.key===String(keep))) elements.bossSelect.value=String(keep);
+    else if (shown.length === 1 && q) elements.bossSelect.value=shown[0].key;
     onBossChange();
-    $('bossHint').textContent=`พบ ${shown.length} / ${BOSSES.length} บอสจาก RateMyServer (Pre-Re)`;
+    $('bossHint').textContent=`พบ ${shown.length} / ${BOSSES.length} ตัวเลือก ตามรายชื่อเซิร์ฟเวอร์นี้`;
   }
   function onBossChange(keepMap='') {
     const boss = getBoss(elements.bossSelect.value);
@@ -424,7 +431,7 @@ select:disabled { opacity:.65; cursor:not-allowed; }
     } else {
       elements.mapSelect.innerHTML=boss.maps.map(m=>`<option value="${safeText(m[0])}">${safeText(m[0])} · ${safeText(m[1])}</option>`).join('');
       if (boss.maps.some(m=>m[0]===keepMap)) elements.mapSelect.value=keepMap;
-      elements.mapInfo.textContent=boss.maps.length > 1 ? `บอสนี้มี ${boss.maps.length} แมพ — เวลาแต่ละแมพแยกจากกัน` : 'แมพอ้างอิงจาก RateMyServer (Pre-Re)';
+      elements.mapInfo.textContent=boss.maps.length > 1 ? `บอสนี้มี ${boss.maps.length} แมพ — เวลาแต่ละแมพแยกจากกัน` : 'แมพตามรายชื่อเซิร์ฟเวอร์นี้';
     }
     onMapChange();
   }
@@ -432,7 +439,8 @@ select:disabled { opacity:.65; cursor:not-allowed; }
     const id=elements.mapSelect.value;
     elements.mapLink.hidden=!id;
     if (id) elements.mapLink.href=`https://ratemyserver.net/index.php?map=${encodeURIComponent(id)}&page=npc_shop_warp&s_block=mob_block`;
-    const existing=records.find(r=>keyOf(r.bossId,r.mapId)===keyOf(elements.bossSelect.value,id));
+    const boss=getBoss(elements.bossSelect.value);
+    const existing=records.find(r=>keyOf(r.bossId,r.mapId)===keyOf(boss?.id,id));
     if (existing && !editingKey) $('saveBtn').textContent='↻ อัปเดตเวลาบอส';
     else $('saveBtn').textContent=editingKey ? '↻ อัปเดตเวลาบอส' : '✚ บันทึกเวลาบอส';
   }
@@ -445,9 +453,10 @@ select:disabled { opacity:.65; cursor:not-allowed; }
     if (focus) { window.scrollTo({top:0,behavior:'smooth'}); elements.bossSearch.focus({preventScroll:true}); }
   }
   function readForm() {
-    const bossId=Number(elements.bossSelect.value);
+    const boss=getBoss(elements.bossSelect.value);
+    const bossId=boss?.id;
     const mapId=elements.mapSelect.value;
-    if (!getMap(bossId,mapId)) throw new Error('กรุณาเลือกชื่อบอสและแมพให้ครบ');
+    if (!boss || !boss.maps.some(m => m[0]===mapId)) throw new Error('กรุณาเลือกชื่อบอสและแมพให้ครบ');
     const time=normalize24HourTime(elements.time.value);
     if (!time) throw new Error('กรุณากรอกเวลาแบบ 24 ชั่วโมง เช่น 09:30 หรือ 23:45');
     elements.time.value=time;
@@ -502,7 +511,7 @@ select:disabled { opacity:.65; cursor:not-allowed; }
     await loadRecords(true);
   }
   function formatEntry(r) {
-    const boss=getBoss(r.bossId),map=getMap(r.bossId,r.mapId);
+    const boss=getBossForRow(r.bossId,r.mapId),map=getMap(r.bossId,r.mapId);
     if (!boss || !map) return '';
     const expired=Date.parse(r.spawnAt)<=currentMillis();
     const actionKey=safeText(keyOf(r.bossId,r.mapId));
@@ -539,7 +548,7 @@ select:disabled { opacity:.65; cursor:not-allowed; }
     const filtered=sortedRows().filter(r=> {
       if (statusFilter==='waiting' && Date.parse(r.spawnAt)<=now) return false;
       if (statusFilter==='overdue' && Date.parse(r.spawnAt)>now) return false;
-      const b=getBoss(r.bossId),m=getMap(r.bossId,r.mapId);
+      const b=getBossForRow(r.bossId,r.mapId),m=getMap(r.bossId,r.mapId);
       return b && m && [b.name,r.mapId,m[1]].some(x=>x.toLowerCase().includes(q));
     });
     $('visibleCount').textContent=`${filtered.length} รายการ`;
@@ -556,10 +565,10 @@ select:disabled { opacity:.65; cursor:not-allowed; }
     if (waiting!==lastWaitingCount) renderRecords();
   }
   function editRow(row) {
-    const boss=getBoss(row.bossId); if (!boss) return;
+    const boss=getBossForRow(row.bossId,row.mapId); if (!boss) return;
     editingKey=keyOf(row.bossId,row.mapId);
     elements.bossSearch.value=boss.name;
-    addBossOptions(boss.name, row.bossId);
+    addBossOptions(boss.name, boss.key);
     onBossChange(row.mapId);
     elements.time.value=thaiTime(new Date(row.tombAt));
 
@@ -578,7 +587,7 @@ select:disabled { opacity:.65; cursor:not-allowed; }
   }
   function askDelete(row) {
     pendingDelete=row;
-    $('deleteMessage').textContent=`${getBoss(row.bossId)?.name || 'บอส'} · ${row.mapId} ${API?'จะถูกลบจากตารางของทุกคน':'จะถูกลบจากเครื่องนี้'}`;
+    $('deleteMessage').textContent=`${getBossForRow(row.bossId,row.mapId)?.name || 'บอส'} · ${row.mapId} ${API?'จะถูกลบจากตารางของทุกคน':'จะถูกลบจากเครื่องนี้'}`;
     if (typeof elements.dialog.showModal === 'function') elements.dialog.showModal();
     else if (confirm('ยืนยันลบเวลาบอสนี้?')) confirmDelete();
   }
