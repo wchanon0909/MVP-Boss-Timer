@@ -3,90 +3,634 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0d1424">
-  <meta name="description" content="MVP Boss Timer: จดเวลาตายจาก Tomb คำนวณเกิดใหม่ 2 ชั่วโมง และแชร์ข้อมูลร่วมกัน">
+  <meta name="theme-color" content="#142b43">
+  <meta name="description" content="MVP Boss Timer — จดเวลา Tomb และเรียงลำดับเวลาเกิดบอส (+2 ชั่วโมง)">
   <title>MVP Boss Timer | Tomb Tracker</title>
-  <link rel="stylesheet" href="assets/style.css">
-  <script defer src="assets/bosses.js"></script>
-  <script defer src="config.js"></script>
-  <script defer src="assets/app.js"></script>
+  <style>
+:root {
+  color-scheme: light;
+  --bg:#eef4f8;
+  --panel:#ffffff;
+  --panel-soft:#f7fafc;
+  --line:#dfebf0;
+  --ink:#203449;
+  --muted:#667c91;
+  --sub:#8da0af;
+  --primary:#009b86;
+  --primary-deep:#007e70;
+  --primary-soft:#dcf7ef;
+  --blue:#3b6aaf;
+  --amber:#e58e35;
+  --danger:#d25b65;
+  --shadow:0 10px 30px rgba(23,52,82,.055);
+}
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  margin:0;
+  min-height:100vh;
+  background:radial-gradient(ellipse 90% 430px at 16% -170px,#d4f3ee 0%,transparent 80%),var(--bg);
+  color:var(--ink);
+  font-family:Inter,"Noto Sans Thai","Segoe UI",Tahoma,system-ui,sans-serif;
+  font-size:14px; line-height:1.5;
+}
+button,input,select { font:inherit; }
+button { cursor:pointer; }
+button:disabled { cursor:wait; opacity:.55; }
+a { color:var(--blue); text-decoration:none; }
+a:hover { text-decoration:underline; }
+:focus-visible { outline:3px solid #57bfe1; outline-offset:2px; }
+[hidden] { display:none!important; }
+.sr-only { position:absolute!important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+.app-shell { max-width:1270px; padding:22px 26px 25px; margin:0 auto; }
+.topbar {
+  min-height:78px; padding:13px 22px; border-radius:18px;
+  background:linear-gradient(115deg,#142b43 5%,#1b3c59 65%,#175c67 120%);
+  display:flex; align-items:center; justify-content:space-between; gap:18px;
+  box-shadow:0 15px 30px rgba(23,55,79,.13);
+}
+.brand { display:flex; gap:12px; min-width:0; align-items:center; }
+.brand-icon {
+  display:grid; place-items:center; width:44px; height:44px; flex:0 0 44px;
+  background:linear-gradient(150deg,#1bb99f,#36a8bc); border:1px solid rgba(255,255,255,.24);
+  border-radius:13px; color:white; font-size:30px; line-height:1;
+}
+.brand-copy { display:flex; flex-direction:column; justify-content:center; }
+.brand-copy strong { color:white; font-size:20px; line-height:1.28; font-weight:820; letter-spacing:-.4px; white-space:nowrap; }
+.brand-copy strong span { color:#7cebd3; }
+.brand-copy small { font-size:9px; letter-spacing:2px; font-weight:750; color:#b5c9d9; }
+.tiny-dot { font-size:12px; padding:0 2px; }
+.top-actions { display:flex; align-items:center; gap:12px; }
+.server-clock {
+  display:flex; gap:3px; flex-direction:column; align-items:flex-end;
+  min-width:154px; padding:6px 14px;
+  background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.13);
+  border-radius:12px; color:#e0f5f4;
+}
+.server-clock span { font-size:10px; color:#c0d9df; letter-spacing:.1px; }
+.server-clock span b { color:#83efdb; font-weight:800; }
+.server-clock strong { font-size:23px; font-weight:850; letter-spacing:.5px; font-variant-numeric:tabular-nums; line-height:1.18; color:white; }
+.icon-btn {
+  height:42px; width:42px; flex:0 0 42px; display:grid; place-items:center;
+  border:1px solid rgba(255,255,255,.18); color:#daeff4; border-radius:11px;
+  background:rgba(255,255,255,.07);
+}
+.icon-btn:hover { background:rgba(255,255,255,.15); }
+.notice { padding:12px 14px; margin:14px 0 0; border-radius:11px; font-size:12px; }
+.notice.error { background:#fff0ed; border:1px solid #f4b3ab; color:#8e343e; }
+.layout { display:grid; grid-template-columns:350px minmax(0,1fr); align-items:start; gap:18px; margin-top:20px; }
+.panel { overflow:hidden; border:1px solid var(--line); border-radius:17px; background:var(--panel); box-shadow:var(--shadow); min-width:0; }
+.panel-heading { min-height:66px; padding:16px 19px; display:flex; gap:12px; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); }
+.heading-left { display:flex; gap:11px; align-items:center; min-width:0; }
+.kicker { display:grid; place-items:center; height:32px; width:32px; flex:0 0 32px; background:#ddf7f0; border-radius:9px; color:var(--primary-deep); font-size:11px; font-weight:900; }
+h2 { padding:0; margin:0; font-size:16px; line-height:1.25; font-weight:820; letter-spacing:-.15px; }
+.chip { display:inline-flex; align-items:center; border-radius:99px; white-space:nowrap; padding:5px 10px; font-weight:800; color:#087d71; background:#e3f8f2; font-size:11px; }
+.composer form { padding:19px 20px 21px; }
+.field { margin-bottom:14px; }
+.field label { display:block; margin:0 0 6px; font-size:12px; color:#40546b; font-weight:770; }
+.required { color:var(--primary); }
+input,select { min-width:0; width:100%; height:42px; padding:0 12px; outline:none; background:#f8fafc; border:1px solid #d6e2e9; border-radius:9px; color:var(--ink); transition:background .14s,border-color .14s,box-shadow .14s; }
+input::placeholder { color:#9aabbb; }
+input:hover,select:hover { border-color:#aabfcc; }
+input:focus,select:focus { background:white; border-color:var(--primary); box-shadow:0 0 0 3px #00a78c16; }
+select { cursor:pointer; padding-right:29px; }
+select:disabled { opacity:.65; cursor:not-allowed; }
+.label-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px; }
+.label-row label { margin:0; }
+.label-row a { font-size:11px; font-weight:700; }
+.time-entry { position:relative; }
+.time-entry input { background:#f1f9f8; border-color:#b9dfd7; height:49px; font-size:21px; font-weight:820; letter-spacing:1px; font-variant-numeric:tabular-nums; padding-right:65px; }
+.time-entry input::placeholder { font-size:15px; font-weight:500; letter-spacing:0; }
+.time-format { pointer-events:none; position:absolute; right:12px; top:50%; transform:translateY(-50%); background:#dcf4ef; border:1px solid #b9e5db; color:#128a7a; border-radius:6px; font-size:10px; font-weight:850; padding:3px 6px; }
+.tiny { border:0; border-radius:7px; background:#e7f2f4; color:#246679; padding:4px 8px; font-size:11px; font-weight:750; }
+.tiny:hover { background:#d7e9ef; }
+.time-field { margin-bottom:20px; }
+.form-buttons { display:grid; grid-template-columns:minmax(0,1fr) 75px; gap:9px; }
+.btn-primary,.btn-outline,.btn-danger { min-height:43px; padding:0 12px; font-size:13px; font-weight:800; border-radius:9px; border:1px solid transparent; }
+.btn-primary { color:white; background:linear-gradient(115deg,#00a98d,#058b91); box-shadow:0 4px 10px rgba(0,155,134,.15); }
+.btn-primary:hover:not(:disabled) { background:linear-gradient(115deg,#0bbd9f,#0797a0); }
+.btn-outline { background:#f2f7fa; border-color:#dbe6ee; color:#496173; }
+.btn-outline:hover:not(:disabled) { background:#e7f0f5; }
+.btn-danger { background:#d75b67; color:white; }
+.btn-danger:hover:not(:disabled) { background:#bd4355; }
+.mode { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; border-radius:99px; font-weight:750; font-size:10px; padding:6px 10px; color:#147e6d; background:#e7f8ef; }
+.mode .status-dot { display:block; width:6px; height:6px; flex:0 0 6px; background:#25b78b; border-radius:50%; }
+.mode-local { background:#fff3df; color:#956220; }
+.mode-local .status-dot { background:#efa73a; }
+.mode-offline { background:#ffecec; color:#b34b53; }
+.mode-offline .status-dot { background:#e47179; }
+.toolbar { display:flex; gap:12px; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid var(--line); }
+.tabs { display:flex; padding:3px; gap:2px; background:#f2f6f9; border:1px solid #e4ecf1; border-radius:9px; }
+.tab { border:0; border-radius:7px; background:transparent; color:#71889b; padding:6px 11px; font-weight:750; font-size:11px; white-space:nowrap; }
+.tab.active { color:#078576; background:white; box-shadow:0 1px 5px #1c3a5415; }
+.tab:hover:not(.active) { color:#274659; }
+.toolbar input { max-width:210px; height:35px; font-size:12px; }
+.records { min-height:170px; padding:12px; }
+.empty { display:grid; justify-items:center; align-content:center; text-align:center; min-height:155px; gap:5px; color:var(--muted); }
+.empty-symbol { color:#6fc8b6; font-size:34px; line-height:1; }
+.empty h3 { margin:0; color:#6d8291; font-size:13px; font-weight:750; }
+.empty p { font-size:11px; margin:0; }
+.entry { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:12px 16px; background:#f8fbfd; border:1px solid #e1eaf0; border-left:4px solid #20bdab; border-radius:12px; padding:13px 14px; margin-bottom:9px; transition:background .13s,border-color .13s; }
+.entry:last-child { margin-bottom:0; }
+.entry:hover { background:#f0f8f9; border-color:#c5e4e0; border-left-color:#18b19c; }
+.entry.overdue { border-left-color:#e3a151; background:#fcfaf6; }
+.entry.overdue:hover { background:#fff8ec; border-color:#ecd5b0; border-left-color:#e3a151; }
+.entry-head { display:flex; gap:11px; align-items:center; min-width:0; }
+.mob-monogram { width:38px; height:38px; flex:0 0 38px; border-radius:10px; background:#e0f4f1; color:#16897a; display:grid; place-items:center; font-size:12px; font-weight:850; }
+.entry.overdue .mob-monogram { background:#fff0d8; color:#bb792b; }
+.entry-names { min-width:0; }
+.entry-head h3 { margin:0 0 2px; font-size:15px; font-weight:850; color:#19354b; overflow-wrap:anywhere; line-height:1.3; }
+.entry-map { display:flex; align-items:center; gap:5px; min-width:0; font-size:11px; color:var(--muted); flex-wrap:wrap; }
+.entry-map a { color:#337da1; font-weight:760; }
+.entry-map .map-name { overflow-wrap:anywhere; }
+.entry-time { display:grid; grid-template-columns:auto auto; gap:15px; align-items:center; text-align:right; }
+.respawn-time { display:grid; gap:1px; }
+.time-label { display:block; color:#71869a; font-size:10px; font-weight:720; line-height:1.15; }
+.respawn-clock { color:#029b85; font-size:25px; font-weight:900; line-height:1.18; letter-spacing:-.65px; font-variant-numeric:tabular-nums; }
+.entry.overdue .respawn-clock { color:#c0843f; }
+.respawn-day { color:#bd7d3c; font-size:10px; font-weight:750; }
+.tomb-time { display:grid; gap:2px; align-content:center; text-align:right; }
+.tomb-time strong { font-size:13px; line-height:1.3; font-variant-numeric:tabular-nums; color:#536a7d; }
+.entry-actions { display:flex; gap:5px; align-items:center; }
+.entry-actions button { border:1px solid #d6e3eb; border-radius:8px; background:white; color:#6b8093; padding:6px 8px; font-size:11px; font-weight:700; }
+.entry-actions button:hover { border-color:#84b7c4; color:#007f78; }
+.entry-actions button.delete:hover { color:#d05b65; border-color:#eca6ad; }
+.list-bottom { display:flex; align-items:center; justify-content:space-between; gap:9px; padding:11px 16px; background:#fbfcfe; border-top:1px solid var(--line); color:#879bab; font-size:10.5px; }
+.footer { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin-top:15px; padding:0 4px; color:#95a7b6; font-size:10.5px; }
+.footer a { color:#678fa8; }
+.confirm { border:1px solid #d7e5e9; padding:0; background:white; color:var(--ink); border-radius:16px; max-width:380px; width:calc(100% - 32px); box-shadow:0 40px 80px #112e4950; }
+.confirm::backdrop { background:#0c253c77; backdrop-filter:blur(3px); }
+.dialog-inner { padding:25px; text-align:center; }
+.dialog-icon { width:42px; height:42px; background:#ffeeed; color:#d2646a; border-radius:50%; margin:0 auto 10px; display:grid; place-items:center; font-weight:900; font-size:23px; }
+.dialog-inner h3 { margin:0 0 5px; font-size:18px; }
+.dialog-inner p { font-size:12px; color:var(--muted); margin:0 0 20px; overflow-wrap:anywhere; }
+.dialog-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.toast { position:fixed; z-index:99; left:50%; transform:translateX(-50%); bottom:22px; max-width:90vw; background:#174e52; color:white; border:1px solid #0e9b8e; border-radius:9px; box-shadow:0 8px 24px #123a4d35; padding:11px 16px; font-size:12px; }
+.toast.error { background:#8d3746; border-color:#d46973; }
+@media(max-width:1100px) {
+  .layout { grid-template-columns:310px minmax(0,1fr); gap:13px; }
+  .app-shell { padding-inline:16px; }
+  .entry { grid-template-columns:minmax(0,1fr) auto; }
+  .entry-actions { grid-column:1 / -1; justify-content:flex-end; }
+}
+@media(max-width:730px) {
+  .app-shell { padding:10px 11px 25px; }
+  .topbar { border-radius:15px; min-height:66px; padding:10px 12px; gap:6px; }
+  .brand { gap:8px; }
+  .brand-icon { width:35px; height:35px; flex-basis:35px; border-radius:9px; font-size:24px; }
+  .brand-copy strong { font-size:16px; }
+  .brand-copy small { font-size:7px; letter-spacing:1px; }
+  .top-actions { gap:5px; }
+  .server-clock { min-width:110px; padding:5px 7px; border-radius:9px; }
+  .server-clock span { font-size:9px; }
+  .server-clock strong { font-size:17px; }
+  .icon-btn { width:34px; height:34px; flex-basis:34px; border-radius:8px; }
+  .layout { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; margin-top:12px; }
+  .panel { border-radius:14px; }
+  .panel-heading { min-height:57px; padding:12px 14px; }
+  .composer form { padding:15px 15px 16px; }
+  .field { margin-bottom:11px; }
+  .time-field { margin-bottom:15px; }
+  .records { padding:10px; min-height:118px; }
+  .entry { grid-template-columns:minmax(0,1fr) auto auto; padding:11px 9px; gap:7px; }
+  .entry-head { gap:8px; }
+  .mob-monogram { height:30px; width:30px; flex-basis:30px; border-radius:8px; font-size:10px; }
+  .entry-head h3 { font-size:13px; }
+  .entry-map { font-size:10px; gap:4px; }
+  .entry-time { gap:9px; }
+  .respawn-clock { font-size:20px; }
+  .tomb-time strong { font-size:12px; }
+  .entry-actions { grid-column:auto; }
+  .entry-actions button { padding:5px 6px; font-size:10px; }
+  .footer { line-height:1.55; }
+}
+@media(max-width:470px) {
+  .brand-copy small { display:none; }
+  .topbar { padding-inline:9px; }
+  .server-clock span { font-size:8.5px; }
+  .server-clock strong { font-size:16px; }
+  .icon-btn { width:31px; height:34px; flex-basis:31px; }
+  .toolbar { padding:10px 11px; gap:8px; }
+  .tab { padding:6px 8px; font-size:10px; }
+  .toolbar input { min-width:0; max-width:none; flex:1; font-size:11px; padding-inline:9px; }
+  .entry { grid-template-columns:1fr auto; gap:8px; padding:11px 10px; }
+  .entry-head { min-width:0; }
+  .entry-time { grid-column:1 / -1; grid-row:2; display:flex; justify-content:space-between; flex-direction:row-reverse; align-items:center; padding-left:38px; border-top:1px solid #e4edf2; padding-top:7px; text-align:left; }
+  .respawn-time { display:flex; flex-direction:row; align-items:baseline; gap:7px; }
+  .respawn-clock { font-size:22px; }
+  .tomb-time { text-align:left; display:flex; align-items:baseline; gap:5px; }
+  .entry-actions { grid-column:2; grid-row:1; justify-self:end; align-self:start; }
+  .entry-head h3 { max-width:100%; }
+  .entry-map .map-name { max-width:180px; }
+}
+@media(max-width:355px) {
+  .brand-copy strong { font-size:14px; }
+  .server-clock { min-width:101px; }
+  .server-clock span b { display:none; }
+  .toolbar { flex-wrap:wrap; }
+  .toolbar input { flex:0 0 100%; }
+  .entry-head { gap:5px; }
+  .entry-map .map-name { max-width:135px; }
+}
+@media(prefers-reduced-motion:reduce) { * { scroll-behavior:auto!important; transition:none!important; } }
+
+</style>
+  <script src="assets/bosses.js"></script>
+  <script src="config.js"></script>
 </head>
 <body>
-  <div class="app-shell">
-    <header class="topbar">
-      <div class="brand">
-        <span class="brand-icon" aria-hidden="true">✦</span>
-        <div class="brand-copy">
-          <strong>MVP <span>Boss Timer</span></strong>
-          <small>TOMB TRACKER <i class="dot"></i> RESPAWN +2H</small>
-        </div>
-      </div>
-      <div class="top-actions">
-        <div id="modeBadge" class="mode mode-local" title="สถานะการเชื่อมต่อ">● <span>กำลังเริ่ม...</span></div>
-        <button type="button" id="reloadBtn" class="icon-btn" title="โหลดข้อมูลใหม่" aria-label="รีเฟรชข้อมูล">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8M4 4v4h4M4 13a8 8 0 0 0 14 5l2-2m0 4v-4h-4"/></svg>
-        </button>
-      </div>
-    </header>
-
-    <div class="introline">
-      <div><h1>จดเวลา Tomb <em>→</em> รอบเกิดถัดไป</h1><p>เลือกบอสและแมพ · กรอกเวลาตาย · ดูลำดับเวลาเกิดอัตโนมัติ</p></div>
-      <div class="timezone">เวลาประเทศไทย <b>UTC+7</b></div>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon" aria-hidden="true">✦</div>
+      <div class="brand-copy"><strong>MVP <span>Boss Timer</span></strong><small>TOMB TRACKER <span class="tiny-dot">·</span> +2 HOURS</small></div>
     </div>
-    <div id="localNotice" class="notice" hidden>⚠ ตอนนี้เป็น <b>โหมดทดลองในเครื่อง</b> — ผู้เล่นคนอื่นจะยังไม่เห็นข้อมูล กรุณาตั้งค่า URL ของ Worker ใน <code>config.js</code> เพื่อเปิดใช้งานร่วมกัน</div>
-    <div id="errorNotice" class="notice error" role="alert" hidden></div>
-
-    <div class="stats" aria-label="สรุปจำนวนบอส">
-      <div class="stat"><span class="stat-icon mint">◷</span><div><b id="statWaiting">0</b><small>กำลังรอเกิด</small></div></div>
-      <div class="stat"><span class="stat-icon amber">⌁</span><div><b id="statOverdue">0</b><small>เลยกำหนด</small></div></div>
-      <div class="stat"><span class="stat-icon violet">✦</span><div><b id="statAll">0</b><small>มีการบันทึก</small></div></div>
-      <div class="stat stat-clock"><span class="stat-icon blue">◉</span><div><b id="thaiClock">--:--:--</b><small>เวลาเซิร์ฟเวอร์ (ไทย)</small></div></div>
+    <div class="top-actions">
+      <div class="server-clock" title="เวลาไทย UTC+7; หากเชื่อมต่อออนไลน์จะอิงเวลาเซิร์ฟเวอร์">
+        <span>เวลาเซิร์ฟเวอร์ <b>UTC+7</b></span>
+        <strong id="thaiClock" aria-label="เวลาปัจจุบันประเทศไทย">--:--:--</strong>
+      </div>
+      <button type="button" id="reloadBtn" class="icon-btn" title="โหลดข้อมูลใหม่" aria-label="รีเฟรชข้อมูล">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8M4 4v4h4M4 13a8 8 0 0 0 14 5l2-2m0 4v-4h-4"/></svg>
+      </button>
     </div>
+  </header>
 
-    <main class="layout">
-      <section class="panel composer" aria-labelledby="formTitle">
-        <div class="panel-heading"><div class="heading-left"><span class="kicker">01</span><div><h2 id="formTitle">บันทึกเวลาบอส</h2><p>เวลาที่อ่านได้จาก Tomb ครั้งล่าสุด</p></div></div><span class="chip soft">+ 2 ชั่วโมง</span></div>
-        <form id="timerForm" autocomplete="off">
-          <div class="field">
-            <label for="bossSearch">ค้นหาบอส <span class="required">*</span></label>
-            <input id="bossSearch" type="search" placeholder="พิมพ์ชื่อบอส เช่น Baphomet" spellcheck="false" autocomplete="off" aria-describedby="bossHint">
-            <div id="bossHint" class="helper">มีรายชื่อบอส 50 ตัวจาก RateMyServer (Pre-Re)</div>
-          </div>
-          <div class="field">
-            <label for="bossSelect">ชื่อบอส <span class="required">*</span></label>
-            <select id="bossSelect" required><option value="">— เลือกบอส —</option></select>
-          </div>
-          <div class="field">
-            <div class="label-row"><label for="mapSelect">แมพที่พบ Tomb <span class="required">*</span></label><a id="mapLink" target="_blank" rel="noopener noreferrer" href="https://ratemyserver.net/?page=mob_db" hidden>ดูแมพใน RMS ↗</a></div>
-            <select id="mapSelect" required disabled><option value="">— เลือกบอสก่อน —</option></select>
-            <div id="mapInfo" class="helper">บอสบางตัวมีหลายแมพ ระบบจะแยกเวลาแต่ละแมพ</div>
-          </div>
-          <div class="time-box">
-            <div class="label-row"><label>วัน / เวลาตายบน Tomb <span class="required">*</span></label><div class="day-pills"><button type="button" id="todayBtn" class="tiny active">วันนี้</button><button type="button" id="yesterdayBtn" class="tiny">เมื่อวาน</button></div></div>
-            <div class="time-inputs"><input type="date" id="deathDate" required aria-label="วันที่บอสตาย"><input type="time" id="deathTime" step="60" required aria-label="เวลาที่บอสตาย"></div>
-            <div class="helper">ใช้วันและเวลาตามในเกม (เวลาไทย) — ถ้าตายข้ามวันให้เลือกวันที่ให้ถูกต้อง</div>
-          </div>
-          <div id="preview" class="preview" aria-live="polite"><div><small>คาดว่าจะเกิดอีกครั้ง</small><strong id="previewTime">— : —</strong></div><span id="previewDay">กรอกเวลาตายก่อน</span></div>
-          <div class="field optional"><label for="editorName">ชื่อผู้บันทึก <span class="muted">(ไม่บังคับ)</span></label><input type="text" id="editorName" maxlength="24" placeholder="เช่น Hunter01" autocomplete="nickname"></div>
-          <div class="form-buttons"><button type="submit" id="saveBtn" class="btn-primary">✚ บันทึกเวลาบอส</button><button type="button" id="clearBtn" class="btn-outline">ล้างฟอร์ม</button></div>
-          <p class="form-foot">ไม่ต้องสมัครสมาชิก · ข้อมูลใหม่ของบอส/แมพเดิมจะเขียนทับเวลาล่าสุด</p>
-        </form>
-      </section>
-
-      <section class="panel entries" aria-labelledby="listTitle">
-        <div class="panel-heading list-heading"><div class="heading-left"><span class="kicker">02</span><div><h2 id="listTitle">ตารางเวลาเกิดบอส</h2><p>แสดงเฉพาะบอสที่มีคนจด · เรียงเวลาเกิดที่ใกล้ที่สุดก่อน</p></div></div><span id="syncStamp" class="synclabel">ยังไม่ได้โหลด</span></div>
-        <div class="toolbar">
-          <div class="tabs" role="group" aria-label="กรองสถานะ"><button type="button" class="tab active" data-filter="all">ทั้งหมด</button><button type="button" class="tab" data-filter="waiting">รอเกิด</button><button type="button" class="tab" data-filter="overdue">เลยกำหนด</button></div>
-          <input id="listSearch" type="search" placeholder="⌕ ค้นหาบอส / แมพ" aria-label="ค้นหาบอสหรือแมพ">
+  <div id="errorNotice" class="notice error" role="alert" hidden></div>
+  <main class="layout">
+    <section class="panel composer" aria-labelledby="formTitle">
+      <div class="panel-heading">
+        <div class="heading-left"><span class="kicker">01</span><h2 id="formTitle">บันทึกเวลาบอส</h2></div>
+        <span class="chip">+2 ชั่วโมง</span>
+      </div>
+      <form id="timerForm" autocomplete="off">
+        <div class="field">
+          <label for="bossSearch">ค้นหาบอส</label>
+          <input id="bossSearch" type="search" placeholder="เช่น Baphomet, Atroce" spellcheck="false" autocomplete="off" aria-describedby="bossHint">
+          <div id="bossHint" class="sr-only" aria-live="polite">ค้นหาบอส</div>
         </div>
-        <div id="records" class="records" aria-live="polite"><div class="empty"><span class="empty-symbol">◌</span><h3>ยังไม่มีเวลาบอส</h3><p>เมื่อมีคนกรอก Tomb ระบบจะแสดงเวลาบอสเกิดตรงนี้</p></div></div>
-        <div class="list-bottom"><span id="visibleCount">แสดง 0 รายการ</span><span>อัปเดตทุก 15 วินาที</span></div>
-      </section>
-    </main>
+        <div class="field">
+          <label for="bossSelect">ชื่อบอส <span class="required">*</span></label>
+          <select id="bossSelect" required><option value="">— เลือกบอส —</option></select>
+        </div>
+        <div class="field">
+          <div class="label-row"><label for="mapSelect">แมพ <span class="required">*</span></label><a id="mapLink" target="_blank" rel="noopener noreferrer" href="https://ratemyserver.net/?page=mob_db" hidden>ดูแมพ ↗</a></div>
+          <select id="mapSelect" required disabled><option value="">— เลือกบอสก่อน —</option></select>
+          <div id="mapInfo" class="sr-only">แมพของบอส</div>
+        </div>
+        <div class="field time-field">
+          <div class="label-row"><label for="deathTime">เวลาตายบน Tomb <span class="required">*</span></label><button type="button" id="nowBtn" class="tiny">ใช้เวลาตอนนี้</button></div>
+          <div class="time-entry"><input type="text" id="deathTime" inputmode="numeric" maxlength="5" placeholder="HH:mm" required aria-label="เวลาตายบน Tomb รูปแบบ 24 ชั่วโมง" spellcheck="false" autocomplete="off"><span class="time-format" aria-hidden="true">24H</span></div>
+        </div>
+        <div class="form-buttons"><button type="submit" id="saveBtn" class="btn-primary">+ บันทึกเวลา</button><button type="button" id="clearBtn" class="btn-outline">ล้าง</button></div>
+      </form>
+    </section>
 
-    <footer class="footer"><span>MVP Boss Timer · MVP v1.0</span><span>ข้อมูลรายชื่อ/แมพ: <a href="https://ratemyserver.net/index.php?mob_search=Search&amp;mvp=1&amp;nspawn=1&amp;page=mob_db" target="_blank" rel="noopener noreferrer">RateMyServer (Pre-Re) ↗</a> · เวลารอบเกิด 2 ชม. ตามกติกาเซิร์ฟเวอร์นี้</span></footer>
-  </div>
-  <dialog id="deleteDialog" class="confirm"><div class="dialog-inner"><div class="dialog-icon">!</div><h3>ลบเวลาบอสนี้?</h3><p id="deleteMessage"></p><div class="dialog-actions"><button id="cancelDelete" type="button" class="btn-outline">ยกเลิก</button><button id="confirmDelete" type="button" class="btn-danger">ยืนยันลบ</button></div></div></dialog>
-  <div id="toast" role="status" aria-live="polite" class="toast" hidden></div>
+    <section class="panel entries" aria-labelledby="listTitle">
+      <div class="panel-heading list-heading">
+        <div class="heading-left"><span class="kicker">02</span><h2 id="listTitle">ตารางเวลาเกิดบอส</h2></div>
+        <div id="modeBadge" class="mode mode-local" title="สถานะการเชื่อมต่อ"><span class="status-dot"></span><span>กำลังเริ่ม...</span></div>
+      </div>
+      <div class="toolbar">
+        <div class="tabs" role="group" aria-label="กรองสถานะ">
+          <button type="button" class="tab active" data-filter="all">ทั้งหมด</button>
+          <button type="button" class="tab" data-filter="waiting">รอเกิด</button>
+          <button type="button" class="tab" data-filter="overdue">เลยเวลา</button>
+        </div>
+        <input id="listSearch" type="search" placeholder="ค้นหาบอส / แมพ" aria-label="ค้นหาบอสหรือแมพ">
+      </div>
+      <div id="records" class="records" aria-live="polite"><div class="empty"><span class="empty-symbol">✦</span><h3>ยังไม่มีเวลาบอส</h3></div></div>
+      <div class="list-bottom"><span id="visibleCount">0 รายการ</span><span id="syncStamp">กำลังโหลด...</span></div>
+    </section>
+  </main>
+  <footer class="footer"><span>MVP Boss Timer · v1.2</span><span>รายชื่อและแมพจาก <a href="https://ratemyserver.net/index.php?mob_search=Search&amp;mvp=1&amp;nspawn=1&amp;page=mob_db" target="_blank" rel="noopener noreferrer">RateMyServer</a> · ทุกบอส +2 ชม.</span></footer>
+</div>
+<dialog id="deleteDialog" class="confirm">
+  <div class="dialog-inner"><div class="dialog-icon">!</div><h3>ลบเวลาบอสนี้?</h3><p id="deleteMessage"></p><div class="dialog-actions"><button id="cancelDelete" type="button" class="btn-outline">ยกเลิก</button><button id="confirmDelete" type="button" class="btn-danger">ยืนยันลบ</button></div></div>
+</dialog>
+<div id="toast" role="status" aria-live="polite" class="toast" hidden></div>
+<script>
+(() => {
+  'use strict';
+  const BOSSES = (window.MVP_BOSSES || []).slice().sort((a, b) => a.name.localeCompare(b.name, 'en'));
+  const BOSS_MAP = new Map(BOSSES.map(b => [String(b.id), b]));
+  const API = String(window.MVP_CONFIG?.API_BASE || '').trim().replace(/\/+$/, '');
+  const LOCAL_KEY = 'mvp-tomb-timers-v1';
+  const DELAY = 2 * 60 * 60 * 1000;
+  const $ = id => document.getElementById(id);
+  const elements = {
+    bossSearch: $('bossSearch'), bossSelect: $('bossSelect'), mapSelect: $('mapSelect'), mapLink: $('mapLink'), mapInfo: $('mapInfo'),
+    time: $('deathTime'), form: $('timerForm'), saveBtn: $('saveBtn'),
+    list: $('records'), listSearch: $('listSearch'), mode: $('modeBadge'), error: $('errorNotice'),
+    dialog: $('deleteDialog'), toast: $('toast')
+  };
+  let records = [];
+  let statusFilter = 'all';
+  let pendingDelete = null;
+  let editingKey = null;
+  let saving = false;
+  let toastHandle = null;
+  let serverClockOffset = 0;
+  let lastWaitingCount = -1;
+  const currentMillis = () => Date.now()+serverClockOffset;
+
+  function safeText(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function pairs(date = new Date()) {
+    const parts = new Intl.DateTimeFormat('en-GB', {timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(date);
+    return Object.fromEntries(parts.filter(x => x.type !== 'literal').map(x => [x.type,x.value]));
+  }
+  function thaiDateISO(date = new Date()) { const p = pairs(date); return `${p.year}-${p.month}-${p.day}`; }
+  function thaiTime(date = new Date(), seconds = false) { const p = pairs(date); return `${p.hour}:${p.minute}${seconds ? ':' + p.second : ''}`; }
+  // Keep dates internally for reliable midnight rollover, but only show 24-hour times in the UI.
+  function relativeDay(date, now = new Date()) {
+    const utcDay = value => {
+      const [y,m,d] = thaiDateISO(value).split('-').map(Number);
+      return Date.UTC(y,m-1,d) / 86400000;
+    };
+    const diff=utcDay(date)-utcDay(now);
+    return diff===0 ? 'วันนี้' : diff===1 ? 'พรุ่งนี้' : diff===-1 ? 'เมื่อวาน' : diff>1 ? `อีก ${diff} วัน` : `${-diff} วันก่อน`;
+  }
+  function parseThaiDateTime(date, time) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) return null;
+    const parsed = new Date(`${date}T${time}:00+07:00`);
+    if (!Number.isFinite(parsed.valueOf()) || thaiDateISO(parsed) !== date || thaiTime(parsed) !== time) return null;
+    return parsed;
+  }
+  function normalize24HourTime(value) {
+    const raw=String(value ?? '').trim();
+    let match=/^(\d{1,2}):(\d{1,2})$/.exec(raw);
+    if (!match) {
+      const digits=/^\d{3,4}$/.test(raw) ? raw : '';
+      if (!digits) return null;
+      match=[digits, digits.slice(0,-2), digits.slice(-2)];
+    }
+    const hour=Number(match[1]),minute=Number(match[2]);
+    return hour>=0 && hour<=23 && minute>=0 && minute<=59
+      ? `${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}` : null;
+  }
+  function inferredTombTime(value, now = new Date()) {
+    const time=normalize24HourTime(value);
+    if (!time) return null;
+    // Use today's occurrence unless that clock time has not happened yet in Thailand.
+    // E.g. at 00:15, Tomb 23:30 means yesterday and respawn is today 01:30.
+    const today=thaiDateISO(now);
+    let dead=parseThaiDateTime(today,time);
+    if (dead && dead.getTime()>now.getTime()) {
+      const [y,m,d]=today.split('-').map(Number);
+      const yesterday=new Date(Date.UTC(y,m-1,d-1)).toISOString().slice(0,10);
+      dead=parseThaiDateTime(yesterday,time);
+    }
+    return dead;
+  }
+  function pretty(dateString) {
+    const date=new Date(dateString);
+    return Number.isFinite(date.valueOf()) ? `${thaiTime(date)} (${relativeDay(date)})` : '—';
+  }
+  function keyOf(id, mapId) { return `${id}::${mapId}`; }
+  function getBoss(id) { return BOSS_MAP.get(String(id)); }
+  function getMap(bossId, mapId) { const boss=getBoss(bossId); return boss?.maps.find(m => m[0] === mapId); }
+  function isValidRow(r) { return !!(r && getMap(r.bossId,r.mapId) && Number.isFinite(Date.parse(r.tombAt)) && Number.isFinite(Date.parse(r.spawnAt))); }
+  function localRead() {
+    try { const rows = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]'); return Array.isArray(rows) ? rows.filter(isValidRow) : []; }
+    catch { return []; }
+  }
+  function localWrite(rows) { try { localStorage.setItem(LOCAL_KEY,JSON.stringify(rows)); return true; } catch { return false; } }
+  function setMode(mode) {
+    elements.mode.className = `mode ${mode==='online' ? '' : mode==='local' ? 'mode-local' : 'mode-offline'}`;
+    elements.mode.querySelector('span:last-child').textContent = ({online:'แชร์ออนไลน์',local:'ในเครื่อง · ไม่แชร์',offline:'ออฟไลน์'})[mode];
+    elements.mode.title = ({online:'ข้อมูลแชร์กับผู้เล่นทุกคนผ่าน Worker',local:'ยังไม่ได้เชื่อม Worker — ข้อมูลอยู่เฉพาะเบราว์เซอร์นี้',offline:'เชื่อมต่อ Worker ไม่สำเร็จ'})[mode];
+  }
+  function showError(message = '') { elements.error.hidden = !message; elements.error.textContent = message; }
+  function notify(message, error = false) {
+    elements.toast.textContent = message; elements.toast.className = `toast ${error?'error':''}`; elements.toast.hidden = false;
+    clearTimeout(toastHandle); toastHandle=setTimeout(() => elements.toast.hidden=true, 3300);
+  }
+  function addBossOptions(query = '', keep = '') {
+    const q=query.trim().toLowerCase();
+    const shown=BOSSES.filter(b => b.name.toLowerCase().includes(q) || String(b.id).includes(q));
+    elements.bossSelect.innerHTML='<option value="">— เลือกบอส —</option>'+shown.map(b=>`<option value="${b.id}">${safeText(b.name)}</option>`).join('');
+    if (shown.some(b=>String(b.id)===String(keep))) elements.bossSelect.value=String(keep);
+    else if (shown.length === 1 && q) elements.bossSelect.value=String(shown[0].id);
+    onBossChange();
+    $('bossHint').textContent=`พบ ${shown.length} / ${BOSSES.length} บอสจาก RateMyServer (Pre-Re)`;
+  }
+  function onBossChange(keepMap='') {
+    const boss = getBoss(elements.bossSelect.value);
+    elements.mapSelect.disabled = !boss;
+    if (!boss) {
+      elements.mapSelect.innerHTML='<option value="">— เลือกบอสก่อน —</option>';
+      elements.mapLink.hidden=true;
+      elements.mapInfo.textContent='บอสบางตัวมีหลายแมพ ระบบจะแยกเวลาแต่ละแมพ';
+    } else {
+      elements.mapSelect.innerHTML=boss.maps.map(m=>`<option value="${safeText(m[0])}">${safeText(m[0])} · ${safeText(m[1])}</option>`).join('');
+      if (boss.maps.some(m=>m[0]===keepMap)) elements.mapSelect.value=keepMap;
+      elements.mapInfo.textContent=boss.maps.length > 1 ? `บอสนี้มี ${boss.maps.length} แมพ — เวลาแต่ละแมพแยกจากกัน` : 'แมพอ้างอิงจาก RateMyServer (Pre-Re)';
+    }
+    onMapChange();
+  }
+  function onMapChange() {
+    const id=elements.mapSelect.value;
+    elements.mapLink.hidden=!id;
+    if (id) elements.mapLink.href=`https://ratemyserver.net/index.php?map=${encodeURIComponent(id)}&page=npc_shop_warp&s_block=mob_block`;
+    const existing=records.find(r=>keyOf(r.bossId,r.mapId)===keyOf(elements.bossSelect.value,id));
+    if (existing && !editingKey) $('saveBtn').textContent='↻ อัปเดตเวลาบอส';
+    else $('saveBtn').textContent=editingKey ? '↻ อัปเดตเวลาบอส' : '✚ บันทึกเวลาบอส';
+  }
+  function resetForm(focus=false) {
+    editingKey=null;
+    elements.bossSearch.value='';
+    addBossOptions();
+    elements.time.value='';
+    $('saveBtn').textContent='✚ บันทึกเวลาบอส';
+    if (focus) { window.scrollTo({top:0,behavior:'smooth'}); elements.bossSearch.focus({preventScroll:true}); }
+  }
+  function readForm() {
+    const bossId=Number(elements.bossSelect.value);
+    const mapId=elements.mapSelect.value;
+    if (!getMap(bossId,mapId)) throw new Error('กรุณาเลือกชื่อบอสและแมพให้ครบ');
+    const time=normalize24HourTime(elements.time.value);
+    if (!time) throw new Error('กรุณากรอกเวลาแบบ 24 ชั่วโมง เช่น 09:30 หรือ 23:45');
+    elements.time.value=time;
+    const tomb=inferredTombTime(time,new Date(currentMillis()));
+    if (!tomb) throw new Error('ไม่สามารถอ่านเวลาตายบน Tomb ได้');
+    const age=currentMillis()-tomb.valueOf();
+    if (age < -5*60*1000 || age > 24*60*60*1000) throw new Error('กรุณากรอกเวลา Tomb ภายใน 24 ชั่วโมงที่ผ่านมา');
+    // Keep the editor field in the API request for backward compatibility with v1.1 Worker.
+    return {bossId,mapId,tombAt:tomb.toISOString(),editor:''};
+  }
+  async function loadRecords(quiet=false) {
+    if (!API) {
+      records=localRead(); setMode('local'); showError(''); renderRecords();
+      $('syncStamp').textContent='ข้อมูลบนเครื่อง'; return;
+    }
+    try {
+      const res=await fetch(`${API}/api/timers`,{cache:'no-store',headers:{'Accept':'application/json'}});
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data=await res.json();
+      if (!Array.isArray(data.rows)) throw new Error('รูปแบบข้อมูลไม่ถูกต้อง');
+      records=data.rows.filter(isValidRow);
+      const serverNow=Date.parse(data.serverNow);
+      if (Number.isFinite(serverNow)) serverClockOffset=serverNow-Date.now();
+      setMode('online'); showError(''); renderRecords();
+      $('syncStamp').textContent=`ซิงก์ล่าสุด ${thaiTime(new Date())}`;
+    } catch(e) {
+      setMode('offline');
+      if (!quiet) showError('เชื่อมต่อ Worker ไม่สำเร็จ — ตรวจ URL ใน config.js และการ Deploy Cloudflare ('+e.message+')');
+      $('syncStamp').textContent='ยังซิงก์ไม่ได้';
+      if (!quiet) notify('โหลดข้อมูลร่วมกันไม่สำเร็จ',true);
+    }
+  }
+  async function saveRow(row) {
+    if (!API) {
+      const now=new Date().toISOString();
+      const record={...row,spawnAt:new Date(Date.parse(row.tombAt)+DELAY).toISOString(),updatedAt:now};
+      const next=localRead().filter(r=>keyOf(r.bossId,r.mapId)!==keyOf(row.bossId,row.mapId));next.push(record);
+      if (!localWrite(next)) throw new Error('ไม่สามารถบันทึกข้อมูลในเบราว์เซอร์นี้ได้');
+      await loadRecords(true);return;
+    }
+    const res=await fetch(`${API}/api/timers`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(row)});
+    if (!res.ok) {let msg=`HTTP ${res.status}`;try{msg=(await res.json()).error||msg;}catch{}throw new Error(msg);}
+    await loadRecords(true);
+  }
+  async function removeRow(row) {
+    if (!API) {
+      if (!localWrite(localRead().filter(r=>keyOf(r.bossId,r.mapId)!==keyOf(row.bossId,row.mapId)))) throw new Error('ไม่สามารถลบข้อมูลในเครื่องนี้ได้');
+      await loadRecords(true);return;
+    }
+    const res=await fetch(`${API}/api/timers`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({bossId:row.bossId,mapId:row.mapId})});
+    if (!res.ok) {let msg=`HTTP ${res.status}`;try{msg=(await res.json()).error||msg;}catch{}throw new Error(msg);}
+    await loadRecords(true);
+  }
+  function formatEntry(r) {
+    const boss=getBoss(r.bossId),map=getMap(r.bossId,r.mapId);
+    if (!boss || !map) return '';
+    const expired=Date.parse(r.spawnAt)<=currentMillis();
+    const actionKey=safeText(keyOf(r.bossId,r.mapId));
+    const monogram=safeText(boss.name.substring(0,2).toUpperCase());
+    const mapLink=`https://ratemyserver.net/index.php?map=${encodeURIComponent(r.mapId)}&page=npc_shop_warp&s_block=mob_block`;
+    const spawn=new Date(r.spawnAt);
+    const tomb=new Date(r.tombAt);
+    const day=relativeDay(spawn);
+    return `<article class="entry ${expired?'overdue':''}" data-row-key="${actionKey}">
+      <div class="entry-head">
+        <div class="mob-monogram" aria-hidden="true">${monogram}</div>
+        <div class="entry-names"><h3>${safeText(boss.name)}</h3><div class="entry-map"><a href="${safeText(mapLink)}" target="_blank" rel="noopener noreferrer">${safeText(r.mapId)} ↗</a><span class="map-name">${safeText(map[1])}</span></div></div>
+      </div>
+      <div class="entry-time">
+        <div class="respawn-time"><span class="time-label">เกิด${day!=='วันนี้' ? ' · '+safeText(day) : ''}</span><strong class="respawn-clock">${thaiTime(spawn)}</strong></div>
+        <div class="tomb-time"><span class="time-label">ตาย</span><strong>${thaiTime(tomb)}</strong></div>
+      </div>
+      <div class="entry-actions"><button type="button" data-action="edit" data-key="${actionKey}" aria-label="แก้ไข ${safeText(boss.name)} ${safeText(r.mapId)}">✎</button><button type="button" class="delete" data-action="delete" data-key="${actionKey}" aria-label="ลบ ${safeText(boss.name)} ${safeText(r.mapId)}">×</button></div>
+    </article>`;
+  }
+  function sortedRows() {
+    const now=currentMillis();
+    return records.slice().sort((a,b)=> {
+      const at=Date.parse(a.spawnAt), bt=Date.parse(b.spawnAt), aPast=at<=now, bPast=bt<=now;
+      if (aPast!==bPast) return aPast?1:-1;
+      return aPast ? bt-at : at-bt;
+    });
+  }
+  function renderRecords() {
+    const now=currentMillis();
+    const waiting=records.filter(r=>Date.parse(r.spawnAt)>now).length;
+    lastWaitingCount=waiting;
+    const q=elements.listSearch.value.trim().toLowerCase();
+    const filtered=sortedRows().filter(r=> {
+      if (statusFilter==='waiting' && Date.parse(r.spawnAt)<=now) return false;
+      if (statusFilter==='overdue' && Date.parse(r.spawnAt)>now) return false;
+      const b=getBoss(r.bossId),m=getMap(r.bossId,r.mapId);
+      return b && m && [b.name,r.mapId,m[1]].some(x=>x.toLowerCase().includes(q));
+    });
+    $('visibleCount').textContent=`${filtered.length} รายการ`;
+    if (!filtered.length) {
+      const hasData=records.length>0;
+      elements.list.innerHTML=`<div class="empty"><span class="empty-symbol">✦</span><h3>${hasData?'ไม่พบรายการ':'ยังไม่มีเวลาบอส'}</h3></div>`;
+    } else elements.list.innerHTML=filtered.map(formatEntry).join('');
+    onMapChange();
+  }
+  function refreshTick() {
+    // Use the Worker clock when available; default to Thai time based on the device clock.
+    $('thaiClock').textContent=thaiTime(new Date(currentMillis()),true);
+    const waiting=records.filter(r=>Date.parse(r.spawnAt)>currentMillis()).length;
+    if (waiting!==lastWaitingCount) renderRecords();
+  }
+  function editRow(row) {
+    const boss=getBoss(row.bossId); if (!boss) return;
+    editingKey=keyOf(row.bossId,row.mapId);
+    elements.bossSearch.value=boss.name;
+    addBossOptions(boss.name, row.bossId);
+    onBossChange(row.mapId);
+    elements.time.value=thaiTime(new Date(row.tombAt));
+
+    $('saveBtn').textContent='↻ อัปเดตเวลาบอส';
+    window.scrollTo({top:0,behavior:'smooth'});
+    notify(`กำลังแก้ไข ${boss.name} · ${row.mapId}`);
+  }
+  async function onSubmit(ev) {
+    ev.preventDefault(); if (saving) return;
+    let row;
+    try {row=readForm();} catch(e){notify(e.message,true);return;}
+    saving=true; elements.saveBtn.disabled=true;elements.saveBtn.textContent='กำลังบันทึก...';
+    try { await saveRow(row);notify('บันทึกสำเร็จ · ระบบคำนวณเกิดใหม่ +2 ชั่วโมงแล้ว');resetForm(); }
+    catch(e){notify(`บันทึกไม่สำเร็จ: ${e.message}`,true);showError(e.message);}
+    finally{saving=false;elements.saveBtn.disabled=false;onMapChange();}
+  }
+  function askDelete(row) {
+    pendingDelete=row;
+    $('deleteMessage').textContent=`${getBoss(row.bossId)?.name || 'บอส'} · ${row.mapId} ${API?'จะถูกลบจากตารางของทุกคน':'จะถูกลบจากเครื่องนี้'}`;
+    if (typeof elements.dialog.showModal === 'function') elements.dialog.showModal();
+    else if (confirm('ยืนยันลบเวลาบอสนี้?')) confirmDelete();
+  }
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    const row=pendingDelete; pendingDelete=null;
+    elements.dialog.close?.();
+    const button=$('confirmDelete');button.disabled=true;
+    try {await removeRow(row);notify('ลบเวลาบอสเรียบร้อยแล้ว');}
+    catch(e){notify(`ลบไม่สำเร็จ: ${e.message}`,true);showError(e.message);}
+    finally{button.disabled=false;}
+  }
+  function bindEvents() {
+    elements.bossSearch.addEventListener('input',()=>addBossOptions(elements.bossSearch.value));
+    elements.bossSelect.addEventListener('change',()=>{ editingKey=null; onBossChange(); });
+    elements.mapSelect.addEventListener('change',()=>{ editingKey=null; onMapChange(); });
+    elements.time.addEventListener('blur',()=>{
+      const normalized=normalize24HourTime(elements.time.value);
+      if (normalized) elements.time.value=normalized;
+    });
+    $('nowBtn').addEventListener('click',()=>{elements.time.value=thaiTime(new Date(currentMillis()));});
+    elements.form.addEventListener('submit',onSubmit);
+    $('clearBtn').addEventListener('click',()=>resetForm());
+    elements.listSearch.addEventListener('input',renderRecords);
+    document.querySelectorAll('[data-filter]').forEach(btn=>btn.addEventListener('click',()=>{
+      statusFilter=btn.dataset.filter;
+      document.querySelectorAll('[data-filter]').forEach(x=>x.classList.toggle('active',x===btn));renderRecords();
+    }));
+    elements.list.addEventListener('click',event=>{
+      const button=event.target.closest('button[data-action]');if(!button)return;
+      const row=records.find(r=>keyOf(r.bossId,r.mapId)===button.dataset.key);if(!row)return;
+      if(button.dataset.action==='edit') editRow(row);
+      if(button.dataset.action==='delete') askDelete(row);
+    });
+    $('cancelDelete').addEventListener('click',()=>{pendingDelete=null;elements.dialog.close();});
+    $('confirmDelete').addEventListener('click',confirmDelete);
+    elements.dialog.addEventListener('close',()=>{pendingDelete=null;});
+    $('reloadBtn').addEventListener('click',()=>loadRecords());
+    window.addEventListener('focus',()=>loadRecords(true));
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')loadRecords(true);});
+  }
+  async function init() {
+    bindEvents();
+    resetForm();
+    refreshTick();
+    await loadRecords();
+    setInterval(refreshTick,1000);
+    setInterval(()=>{if(document.visibilityState==='visible')loadRecords(true);},15000);
+  }
+  init();
+})();
+
+</script>
 </body>
 </html>
