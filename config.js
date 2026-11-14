@@ -2,5 +2,5 @@
 // Example: https://mvp-boss-timer-api.your-name.workers.dev
 // Empty string = local-only demo (not shared with other players).
 window.MVP_CONFIG = {
-  API_BASE: ""
+  API_BASE: "https://mvp-boss-timer-api.wonghasadorn-chanon.workers.dev"
 };
