@@ -234,6 +234,47 @@ select:disabled { opacity:.65; cursor:not-allowed; }
 }
 @media(prefers-reduced-motion:reduce) { * { scroll-behavior:auto!important; transition:none!important; } }
 
+
+
+/* V1.5: alert boss for 5 minutes, then move to separate stale queue */
+.left-stack { display:flex; flex-direction:column; gap:16px; min-width:0; }
+.entry.ready {
+  border-left-color:#e86745;
+  border-color:#f2bca4;
+  border-left-width:4px;
+  background:#fff1e8;
+  animation:bossReadyPulse 1.05s ease-in-out infinite alternate;
+}
+.entry.ready:hover { background:#fff0e3; border-color:#e99c82; }
+.entry.ready .mob-monogram { background:#ffe2d2; color:#b95032; }
+.entry.ready .respawn-clock { color:#ba432c; }
+.entry.ready .time-label { color:#a95035; }
+.ready-tag { display:inline-flex; align-items:center; gap:4px; margin-left:7px; padding:2px 7px; border-radius:99px; background:#db4b35; color:white; font-size:10px; font-weight:800; vertical-align:2px; white-space:nowrap; }
+.ready-tag::before { content:'●'; font-size:8px; }
+@keyframes bossReadyPulse {
+  from { background:#fff3e8; box-shadow:inset 0 0 0 0 rgba(222,89,50,0),0 0 0 rgba(224,102,67,0); }
+  to { background:#ffdfd0; box-shadow:inset 0 0 0 1px rgba(222,89,50,.36),0 0 0 1px rgba(224,102,67,.12); }
+}
+.stale-panel .panel-heading { min-height:58px; padding:13px 16px; }
+.stale-panel .panel-heading h2 { font-size:14px; }
+.stale-panel .kicker { background:#fff0da; color:#a86a19; }
+.stale-count { background:#fff0d8; color:#ad711d; }
+.stale-list { padding:10px 12px; max-height:430px; overflow-y:auto; }
+.stale-item { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:center; padding:11px 10px; border:1px solid #e2eaf0; border-left:3px solid #e3a151; border-radius:10px; background:#fcfaf7; margin-bottom:8px; }
+.stale-item:last-child { margin-bottom:0; }
+.stale-title { font-size:13px; font-weight:820; line-height:1.25; color:#203449; overflow-wrap:anywhere; }
+.stale-map { font-size:10.5px; color:#6c8295; margin-top:3px; overflow-wrap:anywhere; }
+.stale-meta { display:flex; flex-wrap:wrap; align-items:center; gap:7px; margin-top:5px; }
+.stale-time { font-size:12px; font-weight:850; color:#ba7827; font-variant-numeric:tabular-nums; }
+.stale-day { font-size:10px; color:#9b8672; }
+.stale-info { grid-column:1; grid-row:1; min-width:0; }
+.stale-item .entry-actions { grid-column:2; grid-row:1; justify-content:flex-end; }
+.stale-item .entry-actions button { padding:5px 8px; }
+.stale-empty { min-height:70px; display:grid; place-items:center; padding:12px; color:#7b91a0; font-size:12px; text-align:center; }
+@media(max-width:1100px) { .stale-item .entry-actions { grid-column:2; grid-row:1; } }
+@media(max-width:730px) { .left-stack { gap:12px; } .stale-panel .panel-heading { padding:12px; } .stale-list { max-height:320px; } }
+@media(prefers-reduced-motion:reduce) { .entry.ready { animation:none!important; background:#ffe3d3; border-left-color:#da5837; } }
+
 </style>
   <script>
 // Boss names and maps adapted from the private-server list provided by the site owner.
@@ -261,6 +302,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
 
   <div id="errorNotice" class="notice error" role="alert" hidden></div>
   <main class="layout">
+    <div class="left-stack">
     <section class="panel composer" aria-labelledby="formTitle">
       <div class="panel-heading">
         <div class="heading-left"><span class="kicker">01</span><h2 id="formTitle">บันทึกเวลาบอส</h2></div>
@@ -289,6 +331,17 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
       </form>
     </section>
 
+    <section class="panel stale-panel" aria-labelledby="staleTitle">
+      <div class="panel-heading">
+        <div class="heading-left"><span class="kicker">03</span><h2 id="staleTitle">เกิดแล้ว · รออัปเดตเวลา</h2></div>
+        <span id="staleCount" class="chip stale-count">0 ตัว</span>
+      </div>
+      <div id="staleRecords" class="stale-list" aria-live="polite">
+        <div class="stale-empty">ยังไม่มีบอสที่รออัปเดต</div>
+      </div>
+    </section>
+    </div>
+
     <section class="panel entries" aria-labelledby="listTitle">
       <div class="panel-heading list-heading">
         <div class="heading-left"><span class="kicker">02</span><h2 id="listTitle">ตารางเวลาเกิดบอส</h2></div>
@@ -298,7 +351,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
         <div class="tabs" role="group" aria-label="กรองสถานะ">
           <button type="button" class="tab active" data-filter="all">ทั้งหมด</button>
           <button type="button" class="tab" data-filter="waiting">รอเกิด</button>
-          <button type="button" class="tab" data-filter="overdue">เลยเวลา</button>
+          <button type="button" class="tab" data-filter="ready">เพิ่งเกิด</button>
         </div>
         <input id="listSearch" type="search" placeholder="ค้นหาบอส / แมพ" aria-label="ค้นหาบอสหรือแมพ">
       </div>
@@ -306,7 +359,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
       <div class="list-bottom"><span id="visibleCount">0 รายการ</span><span id="syncStamp">กำลังโหลด...</span></div>
     </section>
   </main>
-  <footer class="footer"><span>MVP Boss Timer · v1.4</span><span>รายชื่อและแมพตามเซิร์ฟเวอร์นี้ · ทุกบอส +2 ชม.</span></footer>
+  <footer class="footer"><span>MVP Boss Timer · v1.5</span><span>รายชื่อและแมพตามเซิร์ฟเวอร์นี้ · ทุกบอส +2 ชม.</span></footer>
 </div>
 <dialog id="deleteDialog" class="confirm">
   <div class="dialog-inner"><div class="dialog-icon">!</div><h3>ลบเวลาบอสนี้?</h3><p id="deleteMessage"></p><div class="dialog-actions"><button id="cancelDelete" type="button" class="btn-outline">ยกเลิก</button><button id="confirmDelete" type="button" class="btn-danger">ยืนยันลบ</button></div></div>
@@ -323,11 +376,12 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
   const API = String(window.MVP_CONFIG?.API_BASE || '').trim().replace(/\/+$/, '');
   const LOCAL_KEY = 'mvp-tomb-timers-v1';
   const DELAY = 2 * 60 * 60 * 1000;
+  const READY_WINDOW = 5 * 60 * 1000;
   const $ = id => document.getElementById(id);
   const elements = {
     bossSearch: $('bossSearch'), bossSelect: $('bossSelect'), mapSelect: $('mapSelect'), mapLink: $('mapLink'), mapInfo: $('mapInfo'),
     time: $('deathTime'), form: $('timerForm'), saveBtn: $('saveBtn'),
-    list: $('records'), listSearch: $('listSearch'), mode: $('modeBadge'), error: $('errorNotice'),
+    list: $('records'), staleList: $('staleRecords'), listSearch: $('listSearch'), mode: $('modeBadge'), error: $('errorNotice'),
     dialog: $('deleteDialog'), toast: $('toast')
   };
   let records = [];
@@ -337,7 +391,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
   let saving = false;
   let toastHandle = null;
   let serverClockOffset = 0;
-  let lastWaitingCount = -1;
+  let lastPhaseSignature = '';
   const currentMillis = () => Date.now()+serverClockOffset;
 
   function safeText(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -510,59 +564,81 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     if (!res.ok) {let msg=`HTTP ${res.status}`;try{msg=(await res.json()).error||msg;}catch{}throw new Error(msg);}
     await loadRecords(true);
   }
+  // The stored D1 row is not modified when a boss spawns.
+  // A boss is "just spawned" for exactly five minutes, then remains in module 03
+  // until someone submits a NEW Tomb time (or explicitly deletes the record).
+  function phaseOf(row, now=currentMillis()) {
+    const elapsed=now-Date.parse(row.spawnAt);
+    return elapsed<0 ? 'waiting' : elapsed<READY_WINDOW ? 'ready' : 'stale';
+  }
+  function phaseSignature(now=currentMillis()) {
+    return records.map(r=>`${keyOf(r.bossId,r.mapId)}:${phaseOf(r,now)}`).join('|');
+  }
+  function actionButtons(r, boss) {
+    const actionKey=safeText(keyOf(r.bossId,r.mapId));
+    return `<div class="entry-actions"><button type="button" data-action="edit" data-key="${actionKey}" aria-label="อัปเดตเวลา ${safeText(boss.name)} ${safeText(r.mapId)}" title="อัปเดตเวลาตายครั้งใหม่">✎</button><button type="button" class="delete" data-action="delete" data-key="${actionKey}" aria-label="ลบ ${safeText(boss.name)} ${safeText(r.mapId)}" title="ลบรายการ">×</button></div>`;
+  }
   function formatEntry(r) {
     const boss=getBossForRow(r.bossId,r.mapId),map=getMap(r.bossId,r.mapId);
     if (!boss || !map) return '';
-    const expired=Date.parse(r.spawnAt)<=currentMillis();
-    const actionKey=safeText(keyOf(r.bossId,r.mapId));
+    const ready=phaseOf(r)==='ready';
     const monogram=safeText(boss.name.substring(0,2).toUpperCase());
     const mapLink=`https://ratemyserver.net/index.php?map=${encodeURIComponent(r.mapId)}&page=npc_shop_warp&s_block=mob_block`;
-    const spawn=new Date(r.spawnAt);
-    const tomb=new Date(r.tombAt);
+    const spawn=new Date(r.spawnAt), tomb=new Date(r.tombAt);
     const day=relativeDay(spawn);
-    return `<article class="entry ${expired?'overdue':''}" data-row-key="${actionKey}">
+    return `<article class="entry ${ready?'ready':''}" data-row-key="${safeText(keyOf(r.bossId,r.mapId))}">
       <div class="entry-head">
         <div class="mob-monogram" aria-hidden="true">${monogram}</div>
-        <div class="entry-names"><h3>${safeText(boss.name)}</h3><div class="entry-map"><a href="${safeText(mapLink)}" target="_blank" rel="noopener noreferrer">${safeText(r.mapId)} ↗</a><span class="map-name">${safeText(map[1])}</span></div></div>
+        <div class="entry-names"><h3>${safeText(boss.name)}${ready?'<span class="ready-tag">เกิดแล้ว!</span>':''}</h3><div class="entry-map"><a href="${safeText(mapLink)}" target="_blank" rel="noopener noreferrer">${safeText(r.mapId)} ↗</a><span class="map-name">${safeText(map[1])}</span></div></div>
       </div>
       <div class="entry-time">
-        <div class="respawn-time"><span class="time-label">เกิด${day!=='วันนี้' ? ' · '+safeText(day) : ''}</span><strong class="respawn-clock">${thaiTime(spawn)}</strong></div>
+        <div class="respawn-time"><span class="time-label">${ready?'เกิดแล้ว':'เกิด'}${day!=='วันนี้' ? ' · '+safeText(day) : ''}</span><strong class="respawn-clock">${thaiTime(spawn)}</strong></div>
         <div class="tomb-time"><span class="time-label">ตาย</span><strong>${thaiTime(tomb)}</strong></div>
       </div>
-      <div class="entry-actions"><button type="button" data-action="edit" data-key="${actionKey}" aria-label="แก้ไข ${safeText(boss.name)} ${safeText(r.mapId)}">✎</button><button type="button" class="delete" data-action="delete" data-key="${actionKey}" aria-label="ลบ ${safeText(boss.name)} ${safeText(r.mapId)}">×</button></div>
+      ${actionButtons(r,boss)}
     </article>`;
   }
-  function sortedRows() {
-    const now=currentMillis();
-    return records.slice().sort((a,b)=> {
-      const at=Date.parse(a.spawnAt), bt=Date.parse(b.spawnAt), aPast=at<=now, bPast=bt<=now;
-      if (aPast!==bPast) return aPast?1:-1;
-      return aPast ? bt-at : at-bt;
-    });
+  function formatStaleEntry(r) {
+    const boss=getBossForRow(r.bossId,r.mapId),map=getMap(r.bossId,r.mapId);
+    if (!boss || !map) return '';
+    const spawn=new Date(r.spawnAt), day=relativeDay(spawn);
+    return `<article class="stale-item" data-row-key="${safeText(keyOf(r.bossId,r.mapId))}">
+      <div class="stale-info"><div class="stale-title">${safeText(boss.name)}</div><div class="stale-map">${safeText(r.mapId)} · ${safeText(map[1])}</div>
+      <div class="stale-meta"><span class="stale-time">เกิด ${thaiTime(spawn)}</span>${day!=='วันนี้'?`<span class="stale-day">${safeText(day)}</span>`:''}</div></div>
+      ${actionButtons(r,boss)}
+    </article>`;
+  }
+  function matchesSearch(r, q) {
+    const b=getBossForRow(r.bossId,r.mapId),m=getMap(r.bossId,r.mapId);
+    return !!(b&&m&&[b.name,r.mapId,m[1]].some(x=>x.toLowerCase().includes(q)));
   }
   function renderRecords() {
     const now=currentMillis();
-    const waiting=records.filter(r=>Date.parse(r.spawnAt)>now).length;
-    lastWaitingCount=waiting;
+    lastPhaseSignature=phaseSignature(now);
+    const waiting=[], ready=[], stale=[];
+    for (const r of records) {
+      const phase=phaseOf(r,now);
+      (phase==='waiting'?waiting:phase==='ready'?ready:stale).push(r);
+    }
+    // Newly spawned bosses always stay above those waiting to spawn.
+    ready.sort((a,b)=>Date.parse(a.spawnAt)-Date.parse(b.spawnAt));
+    waiting.sort((a,b)=>Date.parse(a.spawnAt)-Date.parse(b.spawnAt));
+    stale.sort((a,b)=>Date.parse(b.spawnAt)-Date.parse(a.spawnAt));
     const q=elements.listSearch.value.trim().toLowerCase();
-    const filtered=sortedRows().filter(r=> {
-      if (statusFilter==='waiting' && Date.parse(r.spawnAt)<=now) return false;
-      if (statusFilter==='overdue' && Date.parse(r.spawnAt)>now) return false;
-      const b=getBossForRow(r.bossId,r.mapId),m=getMap(r.bossId,r.mapId);
-      return b && m && [b.name,r.mapId,m[1]].some(x=>x.toLowerCase().includes(q));
-    });
-    $('visibleCount').textContent=`${filtered.length} รายการ`;
-    if (!filtered.length) {
-      const hasData=records.length>0;
-      elements.list.innerHTML=`<div class="empty"><span class="empty-symbol">✦</span><h3>${hasData?'ไม่พบรายการ':'ยังไม่มีเวลาบอส'}</h3></div>`;
-    } else elements.list.innerHTML=filtered.map(formatEntry).join('');
+    const shown=(statusFilter==='waiting'?waiting:statusFilter==='ready'?ready:[...ready,...waiting])
+      .filter(r=>matchesSearch(r,q));
+    $('visibleCount').textContent=`${shown.length} รายการ`;
+    elements.list.innerHTML=shown.length ? shown.map(formatEntry).join('') :
+      `<div class="empty"><span class="empty-symbol">✦</span><h3>${records.length?'ไม่มีรายการในหมวดนี้':'ยังไม่มีเวลาบอส'}</h3></div>`;
+    $('staleCount').textContent=`${stale.length} ตัว`;
+    elements.staleList.innerHTML=stale.length ? stale.map(formatStaleEntry).join('') :
+      '<div class="stale-empty">ยังไม่มีบอสที่รออัปเดต</div>';
     onMapChange();
   }
   function refreshTick() {
-    // Use the Worker clock when available; default to Thai time based on the device clock.
     $('thaiClock').textContent=thaiTime(new Date(currentMillis()),true);
-    const waiting=records.filter(r=>Date.parse(r.spawnAt)>currentMillis()).length;
-    if (waiting!==lastWaitingCount) renderRecords();
+    // Refresh automatically on both transitions: waiting -> ready, ready -> stale.
+    if (phaseSignature()!==lastPhaseSignature) renderRecords();
   }
   function editRow(row) {
     const boss=getBossForRow(row.bossId,row.mapId); if (!boss) return;
@@ -570,11 +646,14 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     elements.bossSearch.value=boss.name;
     addBossOptions(boss.name, boss.key);
     onBossChange(row.mapId);
-    elements.time.value=thaiTime(new Date(row.tombAt));
+    // Once a boss has been waiting for an update, require a NEW Tomb time.
+    const stale=phaseOf(row)==='stale';
+    elements.time.value=stale ? '' : thaiTime(new Date(row.tombAt));
 
     $('saveBtn').textContent='↻ อัปเดตเวลาบอส';
     window.scrollTo({top:0,behavior:'smooth'});
-    notify(`กำลังแก้ไข ${boss.name} · ${row.mapId}`);
+    if (stale) elements.time.focus({preventScroll:true});
+    notify(stale ? `กรอกเวลา Tomb ครั้งใหม่ของ ${boss.name}` : `กำลังแก้ไข ${boss.name} · ${row.mapId}`);
   }
   async function onSubmit(ev) {
     ev.preventDefault(); if (saving) return;
@@ -616,12 +695,14 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
       statusFilter=btn.dataset.filter;
       document.querySelectorAll('[data-filter]').forEach(x=>x.classList.toggle('active',x===btn));renderRecords();
     }));
-    elements.list.addEventListener('click',event=>{
+    const onRowAction=event=>{
       const button=event.target.closest('button[data-action]');if(!button)return;
       const row=records.find(r=>keyOf(r.bossId,r.mapId)===button.dataset.key);if(!row)return;
       if(button.dataset.action==='edit') editRow(row);
       if(button.dataset.action==='delete') askDelete(row);
-    });
+    };
+    elements.list.addEventListener('click',onRowAction);
+    elements.staleList.addEventListener('click',onRowAction);
     $('cancelDelete').addEventListener('click',()=>{pendingDelete=null;elements.dialog.close();});
     $('confirmDelete').addEventListener('click',confirmDelete);
     elements.dialog.addEventListener('close',()=>{pendingDelete=null;});
