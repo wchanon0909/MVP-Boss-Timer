@@ -1,13 +1,15 @@
-// MVP Boss Timer V1.6 — notification helper only; no offline cache or Push server.
+// MVP Boss Timer V1.11: focus the game timer when a system notification is clicked.
+// Notifications are initiated by the open webpage; no Push subscription is used.
+self.addEventListener('install', event => { self.skipWaiting(); });
+self.addEventListener('activate', event => { event.waitUntil(self.clients.claim()); });
 self.addEventListener('notificationclick', event => {
+  const url = event.notification.data?.url || self.registration.scope;
   event.notification.close();
   event.waitUntil((async () => {
-    const windows = await clients.matchAll({type:'window',includeUncontrolled:true});
-    for (const windowClient of windows) {
-      if (windowClient.url.startsWith(self.registration.scope) && 'focus' in windowClient) {
-        return windowClient.focus();
-      }
+    const windows = await self.clients.matchAll({type:'window', includeUncontrolled:true});
+    for (const client of windows) {
+      if (client.url.startsWith(self.registration.scope) && 'focus' in client) return client.focus();
     }
-    if (clients.openWindow) return clients.openWindow(self.registration.scope);
+    if (self.clients.openWindow) return self.clients.openWindow(url);
   })());
 });

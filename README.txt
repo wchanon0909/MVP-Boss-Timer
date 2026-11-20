@@ -1,14 +1,26 @@
-MVP Boss Timer V1.9 — GIF gallery fix
+MVP Boss Timer V1.11 - Notification Bell Menu
 
-Update only the index.html file in the root of your existing GitHub repository.
+Upload/replace the following files in your existing GitHub repository:
+  index.html
+  notification-sw.js
+  manifest.webmanifest
+  assets/mvp-app-192.png
+  assets/mvp-app-512.png
 
-Changed:
-- The MVP popup now shows real animated GIF sprites from RateMyServer (the same source used in module 02).
-- Increased sprite display area without cropping images; 3 columns on desktop, 2 on mobile.
-- Fixed the missing image-load handler in V1.8 that made loaded GIFs invisible and left initials in place.
-- Initials appear only while a GIF is loading or when a third-party image cannot be reached.
-- Boss names and Size / Race / Element remain underneath each GIF.
+Keep the existing config.js, Cloudflare Worker and D1 database unchanged.
 
-No changes to Cloudflare Worker, D1, config.js or notification-sw.js.
-Keep the existing boss list, 2-hour respawn, notification and Light/Dark settings.
-If RateMyServer image URLs are inaccessible on a client's network, a text fallback will appear for that image.
+Bell usage:
+1. Click the bell to open the settings menu (default OFF on EVERY new page load).
+2. Click "เปิดแจ้งเตือน"; if Chrome/Edge prompts for Notifications, choose Allow.
+3. The "ลองแจ้งเตือนก่อน" test button now appears INSIDE the same bell menu.
+4. Click the test button any time to test. No test is sent automatically on enabling.
+5. Click "ปิดแจ้งเตือน" to disable. Refreshing the tab automatically disables it again.
+
+Note: browser-level Allow permission remains unchanged after refreshing; only the
+site's own timer alert setting resets to OFF. The site must remain open.
+The browser/OS may show the site origin along with the notification heading,
+which the webpage cannot hide.
+
+Test after deployment: https://wchanon0909.github.io/MVP-Boss-Timer/?v=1.11
+Hard refresh if old files are cached (Ctrl+Shift+R).
+The website's frontend was updated only; no Cloudflare/D1 changes are needed.
