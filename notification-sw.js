@@ -1,4 +1,4 @@
-// MVP Boss Timer V1.11: focus the game timer when a system notification is clicked.
+// MVP Boss Timer V1.12: focus the game timer when a system notification is clicked.
 // Notifications are initiated by the open webpage; no Push subscription is used.
 self.addEventListener('install', event => { self.skipWaiting(); });
 self.addEventListener('activate', event => { event.waitUntil(self.clients.claim()); });

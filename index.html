@@ -626,6 +626,36 @@ body[data-theme="dark"] .boss-gallery-close { background:#253c50; border-color:#
   .boss-gallery-art { max-width:112px; height:91px; flex-basis:91px; }
 }
 
+/* V1.12: desaturate only bosses with an active module 02/03 entry.
+   Keep the cards clickable for updating a Tomb time. */
+.boss-gallery-card.has-timer {
+  border-color:#c9d0d7; background:#e7ecf0; color:#657583;
+}
+.boss-gallery-card.has-timer .boss-gallery-art img.loaded {
+  filter:grayscale(1) opacity(.48); opacity:.82;
+}
+.boss-gallery-card.has-timer .boss-gallery-placeholder {
+  background:#cfd8de; color:#687780;
+}
+.boss-gallery-card.has-timer .boss-gallery-name,
+.boss-gallery-card.has-timer .boss-gallery-traits { color:#78858f; }
+.boss-gallery-card.has-timer:hover,
+.boss-gallery-card.has-timer:focus-visible {
+  border-color:#6e9a9a; background:#d8e6e6; color:#415e5e;
+  cursor:pointer;
+}
+body[data-theme="dark"] .boss-gallery-card.has-timer {
+  background:#25303a; border-color:#4b5864; color:#9aa8b3;
+}
+body[data-theme="dark"] .boss-gallery-card.has-timer .boss-gallery-name,
+body[data-theme="dark"] .boss-gallery-card.has-timer .boss-gallery-traits { color:#929eaa; }
+body[data-theme="dark"] .boss-gallery-card.has-timer:hover,
+body[data-theme="dark"] .boss-gallery-card.has-timer:focus-visible {
+  background:#354a4c; border-color:#7bb8b4;
+}
+.footer-credit { font-weight:720; color:var(--primary-deep); }
+body[data-theme="dark"] .footer-credit { color:#8ce4ce; }
+.alert-menu-browser { margin:8px 1px 0; font-size:11px; color:var(--muted); }
 /* V1.11: all notification controls live inside the bell popover. */
 .alert-menu-wrap { position:relative; display:flex; flex:0 0 auto; }
 .alert-menu {
@@ -699,7 +729,8 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
             <span id="toggleAlertText">เปิดแจ้งเตือน</span><span class="alert-switch" aria-hidden="true"></span>
           </button>
           <button type="button" id="testAlertBtn" class="alert-menu-test" hidden>🔔 ลองแจ้งเตือนก่อน</button>
-          <p class="alert-menu-help">ปิดทุกครั้งเมื่อเปิดหน้าเว็บใหม่ · ต้องเปิดเว็บค้างไว้เพื่อรับแจ้งเตือน</p>
+          <p id="alertBrowserStatus" class="alert-menu-browser" aria-live="polite">สถานะเบราว์เซอร์: กำลังตรวจสอบ</p>
+          <p class="alert-menu-help">ปิดทุกครั้งเมื่อเปิดหน้าเว็บใหม่ · ต้องกดเปิดกระดิ่งใหม่ · การแจ้งเตือนต้องเปิดแท็บเว็บค้างไว้</p>
         </div>
       </div>
       <button type="button" id="themeBtn" class="icon-btn" title="เปลี่ยนเป็น Dark Mode" aria-label="เปิด Dark Mode" aria-pressed="false">
@@ -775,7 +806,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
       <div class="list-bottom"><span id="visibleCount">0 รายการ</span><span id="syncStamp">กำลังโหลด...</span></div>
     </section>
   </main>
-  <footer class="footer"><span>MVP Boss Timer · v1.11</span><span>รายชื่อและแมพตามเซิร์ฟเวอร์นี้ · ทุกบอส +2 ชม.</span></footer>
+  <footer class="footer"><span>MVP Boss Timer · v1.12 <span class="footer-credit">· Powered by $a$ha_</span></span><span>รายชื่อและแมพตามเซิร์ฟเวอร์นี้ · ทุกบอส +2 ชม.</span></footer>
 </div>
 <dialog id="deleteDialog" class="confirm">
   <div class="dialog-inner"><div class="dialog-icon">!</div><h3>ลบเวลาบอสนี้?</h3><p id="deleteMessage"></p><div class="dialog-actions"><button id="cancelDelete" type="button" class="btn-outline">ยกเลิก</button><button id="confirmDelete" type="button" class="btn-danger">ยืนยันลบ</button></div></div>
@@ -866,12 +897,31 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     const placeholder=img.nextElementSibling;
     if (placeholder) placeholder.classList.add('is-hidden');
   }
+  // Gray out a gallery card only when its boss+map has an item in module 02 or 03.
+  // Expired (>5h after spawn) records remain in D1 but are NOT grayed out.
+  function activeBossMapKeys(now=currentMillis()) {
+    return new Set(records.filter(r=>phaseOf(r,now)!=='expired')
+      .map(r=>keyOf(r.bossId,r.mapId)));
+  }
+  function syncBossGalleryStatuses() {
+    if (!$('bossGallery').open) return;
+    const activeKeys=activeBossMapKeys();
+    $('bossGalleryGrid').querySelectorAll('[data-boss-pick]').forEach(card=>{
+      const boss=getBoss(card.dataset.bossPick);
+      const recorded=!!boss && boss.maps.some(map=>activeKeys.has(keyOf(boss.id,map[0])));
+      card.classList.toggle('has-timer',recorded);
+      card.setAttribute('data-recorded',String(recorded));
+      card.setAttribute('aria-description',recorded?'มีรายการในตารางแล้ว แต่ยังเลือกซ้ำได้':'ยังไม่มีรายการในตาราง');
+    });
+  }
   function buildBossGallery() {
     const selected=elements.bossSelect.value;
+    const activeKeys=activeBossMapKeys();
     $('bossGalleryGrid').innerHTML=BOSSES.map((b,index)=>{
       const label=attributeLabels(b.id).join(' / ');
-      return `<button type="button" class="boss-gallery-card" data-boss-pick="${safeText(b.key)}"
-          title="${safeText(b.name)} · ${safeText(label)}" aria-label="เลือก ${safeText(b.name)} · ${safeText(label)}" aria-pressed="${b.key===selected}">
+      const recorded=b.maps.some(map=>activeKeys.has(keyOf(b.id,map[0])));
+      return `<button type="button" class="boss-gallery-card${recorded?' has-timer':''}" data-boss-pick="${safeText(b.key)}" data-recorded="${recorded}"
+          title="${safeText(b.name)} · ${safeText(label)}${recorded?' · มีข้อมูลอยู่แล้ว (ยังเลือกได้)':''}" aria-label="เลือก ${safeText(b.name)} · ${safeText(label)}" aria-description="${recorded?'มีรายการในตารางแล้ว แต่ยังเลือกซ้ำได้':'ยังไม่มีรายการในตาราง'}" aria-pressed="${b.key===selected}">
           <span class="boss-gallery-art"><img class="boss-gallery-image" src="${mobSpriteUrl(b.id)}" alt="" loading="${index<9?'eager':'lazy'}" decoding="async" referrerpolicy="no-referrer" width="134" height="112"><span class="boss-gallery-placeholder">${safeText(b.name.slice(0,2).toUpperCase())}</span></span>
           <span class="boss-gallery-name">${safeText(b.name)}</span>
           <span class="boss-gallery-traits">${safeText(label)}</span>
@@ -913,6 +963,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
   let serverClockOffset = 0;
   let lastPhaseSignature = '';
   let alertsEnabled = false;
+  let alertsEnabledAt = null; // Only alert for a spawn that occurs after the user opts in.
   let workerRegistrationPromise = null;
   let notifiedCache = new Map();
   const notifyingInFlight = new Set();
@@ -1161,6 +1212,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     elements.staleList.innerHTML=stale.length ? stale.map(formatStaleEntry).join('') :
       '<div class="stale-empty">ยังไม่มีบอสที่รออัปเดต</div>';
     onMapChange();
+    syncBossGalleryStatuses();
   }
   function refreshTick() {
     $('thaiClock').textContent=thaiTime(new Date(currentMillis()),true);
@@ -1236,6 +1288,9 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     $('toggleAlertBtn').setAttribute('aria-checked',String(on));
     $('toggleAlertText').textContent = on ? 'ปิดแจ้งเตือน' : 'เปิดแจ้งเตือน';
     $('testAlertBtn').hidden = !on;
+    const permission=('Notification' in window) ? Notification.permission : 'unsupported';
+    const names={granted:'อนุญาตแล้ว',default:'รออนุญาต',denied:'ถูกบล็อก',unsupported:'ไม่รองรับ'};
+    $('alertBrowserStatus').textContent=`สิทธิ์ของเบราว์เซอร์: ${names[permission]||permission}`;
   }
   function closeAlertMenu(focusButton=false) {
     $('alertMenu').hidden = true;
@@ -1243,6 +1298,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     if(focusButton) $('alertBtn').focus();
   }
   function toggleAlertMenu() {
+    updateAlertButton(); // Reflect Edge/Chrome site permission changes made outside the page.
     const nextOpen = $('alertMenu').hidden;
     $('alertMenu').hidden = !nextOpen;
     $('alertBtn').setAttribute('aria-expanded',String(nextOpen));
@@ -1265,7 +1321,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
   function registerAlertServiceWorker() {
     if (!('serviceWorker' in navigator) || !window.isSecureContext) return Promise.resolve(null);
     if (!workerRegistrationPromise) {
-      workerRegistrationPromise = navigator.serviceWorker.register('./notification-sw.js?v=1.11', {scope:'./'})
+      workerRegistrationPromise = navigator.serviceWorker.register('./notification-sw.js?v=1.12', {scope:'./'})
         .then(async registration => {
           // navigator.serviceWorker.ready may wait when a fresh worker is still activating.
           // The returned registration itself can be used once it has an active worker.
@@ -1297,7 +1353,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     return {
       title: 'MVP Boss Timer',
       body: isTest
-        ? 'ทดสอบแจ้งเตือนสำเร็จ 🔔\nChrome / Windows พร้อมรับการแจ้งเตือนบอส'
+        ? 'ทดสอบระบบแจ้งเตือน 🔔\nเบราว์เซอร์รับคำสั่งส่ง Notification แล้ว'
         : `${boss.name} (${element}) เกิดแล้ว!\nแมพ ${r.mapId} · เวลาเกิด ${spawnTime}`,
       options: {
         tag, body:'', icon:sprite || originIcon,
@@ -1313,29 +1369,34 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     if (!('Notification' in window) || Notification.permission!=='granted') {
       throw new Error('เบราว์เซอร์ยังไม่ได้อนุญาต Notification');
     }
-    const params={...options,body};
-    // Chrome and Edge are both supported by ServiceWorkerRegistration.showNotification().
-    // Never wait indefinitely for service worker activation: try desktop fallback.
-    const reg=await Promise.race([
+    const full={...options, body};
+    // Some Edge/Chrome installs reject remote GIFs in image/icon fields.
+    // Retry with an icon served from our own GitHub Pages origin before giving up.
+    const fallbackIcon=new URL('./assets/mvp-app-192.png',document.baseURI).href;
+    const safe={tag:options.tag,body,icon:fallbackIcon,badge:fallbackIcon,
+      data:options.data,lang:'th',requireInteraction:false};
+    const registration=await Promise.race([
       registerAlertServiceWorker(),
-      new Promise(resolve=>setTimeout(()=>resolve(null),3000))
+      new Promise(resolve=>setTimeout(()=>resolve(null),3200))
     ]);
-    if (reg && typeof reg.showNotification==='function') {
-      try {
-        await reg.showNotification(title,params);
-        return true;
-      } catch(error) {
-        console.warn('showNotification failed, attempting desktop fallback',error);
-      }
+    const errors=[];
+    if (registration && typeof registration.showNotification==='function') {
+      try { await registration.showNotification(title,full); return true; }
+      catch(error) { errors.push(error); console.warn('Full notification failed',error); }
+      try { await registration.showNotification(title,safe); return true; }
+      catch(error) { errors.push(error); console.warn('Basic service-worker notification failed',error); }
     }
-    // Desktop fallback when the service worker file is missing or has not activated.
+    // This desktop-only fallback works on Chromium-based Edge and Chrome.
     if (typeof Notification==='function') {
-      const notification=new Notification(title,params);
-      notification.onclick=()=>{window.focus();notification.close();};
-      return true;
+      try {
+        const notification=new Notification(title,safe);
+        notification.onclick=()=>{window.focus();notification.close();};
+        return true;
+      } catch(error) { errors.push(error); console.warn('Notification constructor failed',error); }
     }
-    throw new Error('ไม่สามารถแสดง Notification: Service Worker ยังไม่พร้อม');
+    throw new Error(errors.at(-1)?.message || 'Service Worker หรือ Notification ของเบราว์เซอร์ไม่พร้อม');
   }
+
   async function sendNativeNotification(r) {
     if (!alertsEnabled || !('Notification' in window) || Notification.permission!=='granted') return false;
     const boss=getBossForRow(r.bossId,r.mapId);
@@ -1344,15 +1405,18 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     return showSystemNotification(info.title,info.body,info.options);
   }
   function checkSpawnNotifications() {
-    if (!alertsEnabled || !('Notification' in window) || Notification.permission !== 'granted') return;
+    if (!alertsEnabled || alertsEnabledAt===null || !('Notification' in window) || Notification.permission!=='granted') return;
     const now=currentMillis();
     for (const r of records) {
-      if (phaseOf(r,now) !== 'ready') continue;
+      const spawnedAt=Date.parse(r.spawnAt);
+      // Browsers heavily throttle timers on background tabs. Still send when the
+      // tab wakes, provided the spawn happened after opt-in and is <5 hours old.
+      // Do not alert for bosses that had already spawned before opting in.
+      if (!Number.isFinite(spawnedAt) || spawnedAt<alertsEnabledAt || spawnedAt>now || now-spawnedAt>=EXPIRE_WINDOW) continue;
       const key=notificationKey(r);
       if (notifiedCache.has(key) || notifyingInFlight.has(key) || (notificationRetryAt.get(key) || 0)>Date.now()) continue;
       notifyingInFlight.add(key);
       void sendNativeNotification(r).then(success=>{
-        // IMPORTANT: never mark as sent until Chrome/Edge has accepted the notification.
         if (success) rememberNotification(key);
         else notificationRetryAt.set(key,Date.now()+30000);
       }).catch(error=>{
@@ -1361,6 +1425,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
       }).finally(()=>notifyingInFlight.delete(key));
     }
   }
+
   async function testNativeNotification() {
     if (!alertsEnabled || Notification.permission!=='granted') {
       notify('เปิดกระดิ่งและอนุญาตแจ้งเตือนก่อน',true); return;
@@ -1368,7 +1433,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     const info=notificationOptions(null,true);
     try {
       await showSystemNotification(info.title,info.body,info.options);
-      notify('ส่งแจ้งเตือนทดสอบแล้ว · ถ้าไม่เห็น ให้ตรวจสิทธิ์ Chrome และการแจ้งเตือน Windows');
+      notify('เบราว์เซอร์รับคำสั่งทดสอบแล้ว · ถ้าไม่มี Popup ให้ตรวจ Edge/Chrome Notifications และ Windows Do not disturb');
     } catch(error) {
       console.warn('Notification test failed',error);
       notify('ทดสอบไม่สำเร็จ: '+error.message,true);
@@ -1377,6 +1442,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
   async function toggleAlerts() {
     if (alertsEnabled) {
       alertsEnabled=false;
+      alertsEnabledAt=null;
       updateAlertButton();
       notify('ปิดการแจ้งเตือนแล้ว');
       return;
@@ -1386,20 +1452,19 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
       return;
     }
     if (Notification.permission==='denied') {
-      notify('Chrome บล็อกการแจ้งเตือน: กดไอคอนข้าง URL → Site settings → Notifications → Allow',true);
+      notify('เบราว์เซอร์บล็อกการแจ้งเตือน: กดไอคอนข้าง URL → Site permissions → Notifications → Allow',true);
       return;
     }
     try {
       // Directly in the click handler: Chrome requires a user gesture.
       const permission=Notification.permission==='granted'?'granted':await Notification.requestPermission();
       if (permission!=='granted') {
-        notify('ยังไม่ได้อนุญาตแจ้งเตือน กรุณาเลือก Allow ใน Chrome',true);
+        notify('ยังไม่ได้อนุญาตแจ้งเตือน กรุณาเลือก Allow ใน Edge หรือ Chrome',true);
         return;
       }
+      alertsEnabledAt=currentMillis();
       alertsEnabled=true;
       updateAlertButton();
-      // Avoid announcing bosses that were already spawned when the user opted in.
-      for (const r of records) if (phaseOf(r)==='ready') rememberNotification(notificationKey(r));
       void registerAlertServiceWorker();
       notify('เปิดการแจ้งเตือนแล้ว · กด “ลองแจ้งเตือนก่อน” เพื่อทดสอบ');
     } catch(error) {
@@ -1491,6 +1556,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     loadNotificationCache();
     // SECURITY/UX: opt-in is per page view, NEVER restored on refresh/new tab.
     alertsEnabled=false;
+    alertsEnabledAt=null;
     try { localStorage.removeItem(LEGACY_ALERTS_KEY); } catch {}
     updateAlertButton();
     // Keep the service worker warm even before opt-in. No permission prompt is shown.
