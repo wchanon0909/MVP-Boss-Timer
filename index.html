@@ -407,6 +407,101 @@ body[data-theme="dark"] .footer, body[data-theme="dark"] .footer a { color:#9ab1
 }
 @media(prefers-reduced-motion:reduce) { body[data-theme="dark"] .entry.ready { animation:none!important; } }
 
+
+/* V1.7: compact Size / Race / Element band. Level is the colored swatch. */
+.entry {
+  grid-template-columns:minmax(150px,1fr) minmax(196px,235px) 40px auto auto;
+  column-gap:9px;
+  row-gap:7px;
+  padding:10px 12px;
+  min-height:69px;
+}
+.entry-head { min-width:0; gap:8px; }
+.entry-head .entry-names { min-width:0; }
+.entry .boss-thumb { width:40px; height:40px; flex:0 0 40px; justify-self:center; align-self:center; }
+.entry .entry-actions { grid-column:auto; grid-row:auto; justify-content:flex-end; }
+.entry-time { gap:9px; }
+.boss-attributes {
+  display:flex; gap:5px; align-items:center; justify-content:center;
+  white-space:nowrap; min-width:0; height:32px; padding:2px 7px;
+  background:#ecf5fc; border:1px solid #dceaf3; border-radius:8px;
+  font-size:11px; font-weight:740; line-height:1; color:#294a61;
+}
+.attr-slash { color:#91a5b3; font-weight:650; }
+.attr-size,.attr-race { flex:0 0 auto; }
+.element-chip {
+  flex:0 0 auto; display:inline-flex; align-items:center; gap:5px;
+  padding:2px 2px 2px 7px; background:#126bb1; color:#fff;
+  border-radius:5px; font-size:10px; letter-spacing:.02px;
+}
+.element-grade {
+  display:grid; place-items:center; flex:0 0 21px; width:21px; height:22px;
+  border-radius:3px; font-size:12px; line-height:1; font-weight:900;
+  background:#566675; color:white;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);
+}
+/* Palette based on the provided Property/Element swatches. */
+.el-neutral .element-grade { background:#58687a; color:white; }
+.el-water .element-grade { background:#0038e5; color:white; }
+.el-earth .element-grade { background:#886009; color:white; }
+.el-fire .element-grade { background:#ed101b; color:white; }
+.el-wind .element-grade { background:#058b18; color:white; }
+.el-poison .element-grade { background:#8e009d; color:white; }
+.el-holy .element-grade { background:#fff; color:#233549; box-shadow:inset 0 0 0 1px #d0d6dc; }
+.el-shadow .element-grade { background:#090b12; color:white; }
+.el-ghost .element-grade { background:#8797a6; color:#0e233a; }
+.el-undead .element-grade { background:#44474b; color:white; }
+body[data-theme="dark"] .boss-attributes { background:#1e3549; border-color:#37516a; color:#e2eff8; }
+body[data-theme="dark"] .attr-slash { color:#91a9be; }
+body[data-theme="dark"] .element-chip { background:#235f99; }
+/* Compact screen layouts; no horizontal scrolling. */
+@media (min-width:1101px) and (max-width:1250px) {
+  .entry { grid-template-columns:minmax(110px,1fr) minmax(181px,214px) 34px auto auto; gap:6px; padding-inline:9px; }
+  .entry .boss-thumb { width:34px; height:36px; }
+  .boss-attributes { font-size:10px; gap:3px; padding-inline:5px; }
+  .element-chip { font-size:10px; gap:3px; padding-left:5px; }
+  .entry-time { gap:7px; }
+  .respawn-clock { font-size:23px; }
+}
+@media (min-width:731px) and (max-width:1100px) {
+  .entry { grid-template-columns:minmax(105px,1fr) minmax(168px,218px) 33px auto auto; gap:5px; padding-inline:8px; }
+  .entry .boss-thumb { width:33px; height:34px; }
+  .entry .entry-actions { grid-column:auto; grid-row:auto; }
+  .entry-head { gap:5px; }
+  .entry .mob-monogram { width:30px; height:30px; flex-basis:30px; }
+  .entry-map .map-name { display:none; }
+  .boss-attributes { gap:3px; font-size:10px; padding-inline:4px; height:30px; }
+  .element-chip { gap:3px; font-size:9px; padding-left:4px; }
+  .element-grade { width:19px; height:21px; flex-basis:19px; }
+  .entry-time { gap:7px; }
+  .respawn-clock { font-size:21px; }
+  .entry-actions button { padding:5px 6px; }
+}
+@media (max-width:730px) {
+  .entry {
+    grid-template-columns:minmax(0,1fr) 36px auto;
+    column-gap:7px; row-gap:6px; padding:10px;
+  }
+  .entry-head { grid-column:1 / 3; grid-row:1; }
+  .entry .boss-thumb { grid-column:2; grid-row:2; width:32px; height:30px; }
+  .entry .entry-actions { grid-column:3; grid-row:1 / 3; justify-self:end; align-self:center; }
+  .entry .boss-attributes { grid-column:1; grid-row:2; justify-self:start; height:29px; font-size:10.5px; }
+  .entry .entry-time { grid-column:1 / -1; grid-row:3; border-top:1px solid var(--line); padding:6px 0 0; display:flex; justify-content:space-between; flex-direction:row-reverse; align-items:center; text-align:left; }
+  .entry .respawn-time { display:flex; flex-direction:row; align-items:baseline; gap:5px; }
+  .entry .tomb-time { display:flex; flex-direction:row; align-items:baseline; gap:4px; }
+  .entry .respawn-clock { font-size:21px; }
+  .entry .boss-attributes { max-width:100%; }
+  body[data-theme="dark"] .entry .entry-time { border-color:#36536a; }
+}
+@media (max-width:390px) {
+  .entry { grid-template-columns:minmax(0,1fr) 29px auto; column-gap:4px; }
+  .entry .boss-thumb { width:29px; height:29px; }
+  .entry .boss-attributes { gap:3px; padding-inline:4px; font-size:10px; }
+  .entry .element-chip { gap:3px; padding-left:5px; font-size:10px; }
+  .entry .element-grade { flex-basis:19px; width:19px; height:21px; }
+  .entry-actions button { padding:5px 6px; }
+}
+
 </style>
   <script>
 // Boss names and maps adapted from the private-server list provided by the site owner.
@@ -495,7 +590,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
       <div class="list-bottom"><span id="visibleCount">0 รายการ</span><span id="syncStamp">กำลังโหลด...</span></div>
     </section>
   </main>
-  <footer class="footer"><span>MVP Boss Timer · v1.6</span><span>รายชื่อและแมพตามเซิร์ฟเวอร์นี้ · ทุกบอส +2 ชม.</span></footer>
+  <footer class="footer"><span>MVP Boss Timer · v1.7</span><span>รายชื่อและแมพตามเซิร์ฟเวอร์นี้ · ทุกบอส +2 ชม.</span></footer>
 </div>
 <dialog id="deleteDialog" class="confirm">
   <div class="dialog-inner"><div class="dialog-icon">!</div><h3>ลบเวลาบอสนี้?</h3><p id="deleteMessage"></p><div class="dialog-actions"><button id="cancelDelete" type="button" class="btn-outline">ยกเลิก</button><button id="confirmDelete" type="button" class="btn-danger">ยืนยันลบ</button></div></div>
@@ -509,6 +604,62 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
   // The shared D1 record key remains the original (bossId, mapId) pair.
   const BOSS_MAP = new Map(BOSSES.map(b => [b.key, b]));
   const BOSS_BY_PAIR = new Map(BOSSES.flatMap(b => b.maps.map(m => [`${b.id}::${m[0]}`, b])));
+  // RateMyServer Pre-Renewal monster characteristics; respawn timers still use +2 hours for every boss.
+  // Schema per Mob ID: [Size, Race, Element, Element Level].
+  const BOSS_ATTRIBUTES = {
+    1511: ["Large", "Demi-Human", "Earth", 3],
+    1785: ["Large", "Brute", "Shadow", 3],
+    1039: ["Large", "Demon", "Shadow", 3],
+    1874: ["Large", "Demon", "Ghost", 4],
+    1272: ["Large", "Demon", "Undead", 4],
+    1389: ["Large", "Demon", "Shadow", 4],
+    1719: ["Large", "Dragon", "Shadow", 3],
+    1046: ["Medium", "Demon", "Shadow", 3],
+    1112: ["Medium", "Undead", "Undead", 1],
+    1115: ["Large", "Brute", "Fire", 1],
+    1658: ["Medium", "Demi-Human", "Fire", 2],
+    1418: ["Large", "Brute", "Ghost", 3],
+    1871: ["Medium", "Demon", "Shadow", 2],
+    1252: ["Large", "Brute", "Water", 4],
+    1768: ["Large", "Formless", "Ghost", 3],
+    1086: ["Large", "Insect", "Fire", 2],
+    1885: ["Large", "Brute", "Earth", 3],
+    1832: ["Large", "Formless", "Fire", 4],
+    1734: ["Medium", "Formless", "Shadow", 2],
+    1688: ["Large", "Plant", "Wind", 3],
+    1147: ["Large", "Insect", "Earth", 4],
+    1059: ["Small", "Insect", "Wind", 4],
+    1150: ["Medium", "Demon", "Fire", 3],
+    1087: ["Large", "Demi-Human", "Earth", 2],
+    1190: ["Large", "Demi-Human", "Earth", 4],
+    1038: ["Medium", "Undead", "Undead", 4],
+    1157: ["Large", "Demi-Human", "Shadow", 3],
+    1159: ["Large", "Brute", "Neutral", 3],
+    1623: ["Large", "Formless", "Neutral", 3],
+    1492: ["Large", "Demi-Human", "Shadow", 3],
+    1917: ["Large", "Demon", "Shadow", 4],
+    1251: ["Large", "Formless", "Wind", 4],
+    1583: ["Large", "Demon", "Neutral", 3],
+    1708: ["Large", "Demon", "Ghost", 4],
+    1312: ["Large", "Brute", "Earth", 2],
+    1751: ["Large", "Angel", "Holy", 4],
+    1685: ["Large", "Brute", "Holy", 2],
+    1630: ["Large", "Demi-Human", "Wind", 3],
+    2022: ["Large", "Dragon", "Shadow", 4],
+    1373: ["Large", "Demon", "Shadow", 3],
+    2087: ["Large", "Insect", "Earth", 3],
+  };
+  function attributeBar(bossId) {
+    const info = BOSS_ATTRIBUTES[Number(bossId)];
+    if (!info) return '';
+    const [size,race,element,level] = info;
+    const colorClass = element.toLowerCase();
+    const label = `${size} / ${race} / ${element} ${level}`;
+    return `<div class="boss-attributes" title="${safeText(label)} · Source: RateMyServer Pre-Renewal" aria-label="${safeText(label)}">
+      <span class="attr-size">${safeText(size)}</span><span class="attr-slash" aria-hidden="true">/</span><span class="attr-race">${safeText(race)}</span><span class="attr-slash" aria-hidden="true">/</span>
+      <span class="element-chip el-${colorClass}"><span class="element-name">${safeText(element)}</span><span class="element-grade" aria-label="ระดับธาตุ ${level}">${level}</span></span>
+    </div>`;
+  }
   const API = String(window.MVP_CONFIG?.API_BASE || '').trim().replace(/\/+$/, '');
   const LOCAL_KEY = 'mvp-tomb-timers-v1';
   const DELAY = 2 * 60 * 60 * 1000;
@@ -730,8 +881,9 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
       <div class="entry-head">
         <div class="mob-monogram" aria-hidden="true">${monogram}</div>
         <div class="entry-names"><h3 title="${safeText(boss.name)}">${safeText(boss.name)}${ready?'<span class="ready-tag">เกิดแล้ว!</span>':''}</h3><div class="entry-map"><a href="${safeText(mapLink)}" target="_blank" rel="noopener noreferrer">${safeText(r.mapId)} ↗</a><span class="map-name">${safeText(map[1])}</span></div></div>
-        <img class="boss-thumb" src="${spriteUrl}" alt="" aria-hidden="true" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="43" height="40">
       </div>
+      ${attributeBar(boss.id)}
+      <img class="boss-thumb" src="${spriteUrl}" alt="" aria-hidden="true" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="43" height="40">
       <div class="entry-time">
         <div class="respawn-time"><span class="time-label">${ready?'เกิดแล้ว':'เกิด'}${day!=='วันนี้' ? ' · '+safeText(day) : ''}</span><strong class="respawn-clock">${thaiTime(spawn)}</strong></div>
         <div class="tomb-time"><span class="time-label">ตาย</span><strong>${thaiTime(tomb)}</strong></div>
