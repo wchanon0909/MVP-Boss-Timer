@@ -1,15 +1,14 @@
-MVP Boss Timer V1.8 — GitHub Pages update
+MVP Boss Timer V1.9 — GIF gallery fix
 
-Changes:
-- Fixed columns for Size / Race / Element (text only; element grade/color removed).
-- The i icon next to each boss opens RateMyServer Pre-Renewal mob database page.
-- MVP button next to Boss dropdown opens a compact clickable boss-image gallery.
-- Keeps V1.7 Light/Dark, live shared D1/Worker, notifications, 5-minute ready and 5-hour hide rules.
+Update only the index.html file in the root of your existing GitHub repository.
 
-Deploy to existing repository:
-1. Upload index.html to repository ROOT and replace existing index.html.
-2. Commit to main; reload GitHub Pages. Keep existing config.js (Worker URL) and notification-sw.js.
-3. Worker and D1 require no changes.
+Changed:
+- The MVP popup now shows real animated GIF sprites from RateMyServer (the same source used in module 02).
+- Increased sprite display area without cropping images; 3 columns on desktop, 2 on mobile.
+- Fixed the missing image-load handler in V1.8 that made loaded GIFs invisible and left initials in place.
+- Initials appear only while a GIF is loading or when a third-party image cannot be reached.
+- Boss names and Size / Race / Element remain underneath each GIF.
 
-Boss artwork is retrieved from RateMyServer on page load. If an image is unavailable the gallery shows a placeholder.
-The Private Server boss/map list and +2h respawn rule remain unchanged.
+No changes to Cloudflare Worker, D1, config.js or notification-sw.js.
+Keep the existing boss list, 2-hour respawn, notification and Light/Dark settings.
+If RateMyServer image URLs are inaccessible on a client's network, a text fallback will appear for that image.

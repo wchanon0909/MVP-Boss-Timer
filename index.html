@@ -570,15 +570,26 @@ body[data-theme="dark"] .boss-gallery-trigger { border-color:#48baad; }
 .boss-gallery-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
 .boss-gallery-card {
   display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
-  gap:3px; min-width:0; min-height:108px;
-  border:1px solid var(--line); border-radius:10px; padding:9px 5px 8px;
+  gap:5px; min-width:0; min-height:177px;
+  border:1px solid var(--line); border-radius:10px; padding:10px 6px 9px;
   background:var(--panel-soft); color:var(--ink); text-align:center;
 }
 .boss-gallery-card:hover, .boss-gallery-card:focus-visible { background:var(--primary-soft); border-color:var(--primary); }
 .boss-gallery-card[aria-pressed="true"] { border-color:var(--primary); box-shadow:inset 0 0 0 1px var(--primary); }
-.boss-gallery-art { position:relative; height:53px; width:80px; display:grid; place-items:center; }
-.boss-gallery-art img { position:absolute; inset:0; width:80px; height:53px; object-fit:contain; opacity:0; }
+/* Show the actual animated RateMyServer GIF at a readable size.
+   Keep a text fallback only until a sprite is loaded or if the URL fails. */
+.boss-gallery-art {
+  position:relative; width:100%; max-width:134px; height:112px;
+  flex:0 0 112px; display:grid; place-items:center;
+}
+.boss-gallery-art img {
+  position:absolute; inset:0; display:block; width:100%; height:100%;
+  object-fit:contain; image-rendering:auto; opacity:0;
+  filter:drop-shadow(0 2px 2px rgba(20,35,50,.15));
+}
 .boss-gallery-art img.loaded { opacity:1; }
+.boss-gallery-art img[hidden] { display:none; }
+.boss-gallery-placeholder.is-hidden { display:none; }
 .boss-gallery-placeholder {
   display:grid; place-items:center; width:36px; height:36px;
   background:var(--primary-soft); color:var(--primary-deep);
@@ -601,13 +612,16 @@ body[data-theme="dark"] .boss-gallery-close { background:#253c50; border-color:#
   .entry .boss-attributes { width:100%; }
   .boss-gallery-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
   .boss-gallery-scroll { padding:9px; }
-  .boss-gallery-card { min-height:105px; padding:8px 4px; }
+  .boss-gallery-card { min-height:162px; padding:8px 4px; }
+  .boss-gallery-art { max-width:122px; height:100px; flex-basis:100px; }
 }
 @media(max-width:390px) {
   .entry .boss-attributes .attr-value { padding-inline:2px; font-size:10px; }
   .boss-gallery-trigger { flex-basis:62px; }
   .boss-gallery-dialog { width:calc(100vw - 16px); }
   .boss-gallery-traits { font-size:9.5px; }
+  .boss-gallery-card { min-height:151px; }
+  .boss-gallery-art { max-width:112px; height:91px; flex-basis:91px; }
 }
 
 </style>
@@ -703,7 +717,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
       <div class="list-bottom"><span id="visibleCount">0 รายการ</span><span id="syncStamp">กำลังโหลด...</span></div>
     </section>
   </main>
-  <footer class="footer"><span>MVP Boss Timer · v1.8</span><span>รายชื่อและแมพตามเซิร์ฟเวอร์นี้ · ทุกบอส +2 ชม.</span></footer>
+  <footer class="footer"><span>MVP Boss Timer · v1.9</span><span>รายชื่อและแมพตามเซิร์ฟเวอร์นี้ · ทุกบอส +2 ชม.</span></footer>
 </div>
 <dialog id="deleteDialog" class="confirm">
   <div class="dialog-inner"><div class="dialog-icon">!</div><h3>ลบเวลาบอสนี้?</h3><p id="deleteMessage"></p><div class="dialog-actions"><button id="cancelDelete" type="button" class="btn-outline">ยกเลิก</button><button id="confirmDelete" type="button" class="btn-danger">ยืนยันลบ</button></div></div>
@@ -788,17 +802,27 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
   function mobSpriteUrl(bossId) {
     return `https://file5s.ratemyserver.net/mobs/${Number(bossId)}.gif`;
   }
+  function revealBossGalleryImage(img) {
+    if (!img || !img.naturalWidth) return;
+    img.classList.add('loaded');
+    const placeholder=img.nextElementSibling;
+    if (placeholder) placeholder.classList.add('is-hidden');
+  }
   function buildBossGallery() {
     const selected=elements.bossSelect.value;
-    $('bossGalleryGrid').innerHTML=BOSSES.map(b=>{
+    $('bossGalleryGrid').innerHTML=BOSSES.map((b,index)=>{
       const label=attributeLabels(b.id).join(' / ');
       return `<button type="button" class="boss-gallery-card" data-boss-pick="${safeText(b.key)}"
           title="${safeText(b.name)} · ${safeText(label)}" aria-label="เลือก ${safeText(b.name)} · ${safeText(label)}" aria-pressed="${b.key===selected}">
-          <span class="boss-gallery-art"><img class="boss-gallery-image" src="${mobSpriteUrl(b.id)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer"><span class="boss-gallery-placeholder">${safeText(b.name.slice(0,2).toUpperCase())}</span></span>
+          <span class="boss-gallery-art"><img class="boss-gallery-image" src="${mobSpriteUrl(b.id)}" alt="" loading="${index<9?'eager':'lazy'}" decoding="async" referrerpolicy="no-referrer" width="134" height="112"><span class="boss-gallery-placeholder">${safeText(b.name.slice(0,2).toUpperCase())}</span></span>
           <span class="boss-gallery-name">${safeText(b.name)}</span>
           <span class="boss-gallery-traits">${safeText(label)}</span>
         </button>`;
     }).join('');
+    // Handle sprites served instantly from the browser cache as well as fresh loads.
+    $('bossGalleryGrid').querySelectorAll('.boss-gallery-image').forEach(img=>{
+      if (img.complete && img.naturalWidth>0) revealBossGalleryImage(img);
+    });
   }
   function openBossGallery() {
     buildBossGallery();
@@ -1237,13 +1261,19 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
   function bindEvents() {
     $('themeBtn').addEventListener('click',toggleTheme);
     $('alertBtn').addEventListener('click',toggleAlerts);
+    // Image load events don't bubble, so use capture mode for dynamically-added GIFs.
+    document.addEventListener('load',event=>{
+      if (event.target instanceof HTMLImageElement && event.target.classList.contains('boss-gallery-image')) {
+        revealBossGalleryImage(event.target);
+      }
+    },true);
     document.addEventListener('error',event=>{
       if(event.target instanceof HTMLImageElement) {
         if(event.target.classList.contains('boss-thumb')) event.target.remove();
         if(event.target.classList.contains('boss-gallery-image')) {
           event.target.hidden=true;
           const fallback=event.target.nextElementSibling;
-          if(fallback) fallback.hidden=false;
+          if(fallback) fallback.classList.remove('is-hidden');
         }
       }
     },true);
