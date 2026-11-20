@@ -942,6 +942,20 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
   const API = String(window.MVP_CONFIG?.API_BASE || '').trim().replace(/\/+$/, '');
   const LOCAL_KEY = 'mvp-tomb-timers-v1';
   const DELAY = 2 * 60 * 60 * 1000;
+  // Private-server exception: Lord of Death (Boss ID 1373) respawns after 133 minutes.
+  // Every other boss keeps the original 120-minute respawn delay.
+  const LORD_OF_DEATH_ID = 1373;
+  const LORD_OF_DEATH_DELAY = 133 * 60 * 1000;
+  function respawnDelayMs(bossId) {
+    return Number(bossId) === LORD_OF_DEATH_ID ? LORD_OF_DEATH_DELAY : DELAY;
+  }
+  function applyRespawnOverride(row) {
+    if (Number(row.bossId) !== LORD_OF_DEATH_ID) return row;
+    const tombMs = Date.parse(row.tombAt);
+    if (!Number.isFinite(tombMs)) return row;
+    const spawnAt = new Date(tombMs + LORD_OF_DEATH_DELAY).toISOString();
+    return row.spawnAt === spawnAt ? row : { ...row, spawnAt };
+  }
   const READY_WINDOW = 5 * 60 * 1000;
   const EXPIRE_WINDOW = 5 * 60 * 60 * 1000; // 5h after the boss spawn, not 5h after moving to module 03
   const THEME_KEY = 'mvp-theme-v1';
@@ -1028,7 +1042,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
   function getMap(bossId, mapId) { return getBossForRow(bossId, mapId)?.maps.find(m => m[0] === mapId); }
   function isValidRow(r) { return !!(r && getMap(r.bossId,r.mapId) && Number.isFinite(Date.parse(r.tombAt)) && Number.isFinite(Date.parse(r.spawnAt))); }
   function localRead() {
-    try { const rows = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]'); return Array.isArray(rows) ? rows.filter(isValidRow) : []; }
+    try { const rows = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]'); return Array.isArray(rows) ? rows.filter(isValidRow).map(applyRespawnOverride) : []; }
     catch { return []; }
   }
   function localWrite(rows) { try { localStorage.setItem(LOCAL_KEY,JSON.stringify(rows)); return true; } catch { return false; } }
@@ -1102,7 +1116,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data=await res.json();
       if (!Array.isArray(data.rows)) throw new Error('รูปแบบข้อมูลไม่ถูกต้อง');
-      records=data.rows.filter(isValidRow);
+      records=data.rows.filter(isValidRow).map(applyRespawnOverride);
       const serverNow=Date.parse(data.serverNow);
       if (Number.isFinite(serverNow)) serverClockOffset=serverNow-Date.now();
       setMode('online'); showError(''); renderRecords(); checkSpawnNotifications();
@@ -1117,7 +1131,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
   async function saveRow(row) {
     if (!API) {
       const now=new Date().toISOString();
-      const record={...row,spawnAt:new Date(Date.parse(row.tombAt)+DELAY).toISOString(),updatedAt:now};
+      const record={...row,spawnAt:new Date(Date.parse(row.tombAt)+respawnDelayMs(row.bossId)).toISOString(),updatedAt:now};
       const next=localRead().filter(r=>keyOf(r.bossId,r.mapId)!==keyOf(row.bossId,row.mapId));next.push(record);
       if (!localWrite(next)) throw new Error('ไม่สามารถบันทึกข้อมูลในเบราว์เซอร์นี้ได้');
       await loadRecords(true);return;
@@ -1239,7 +1253,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     let row;
     try {row=readForm();} catch(e){notify(e.message,true);return;}
     saving=true; elements.saveBtn.disabled=true;elements.saveBtn.textContent='กำลังบันทึก...';
-    try { await saveRow(row);notify('บันทึกสำเร็จ · ระบบคำนวณเกิดใหม่ +2 ชั่วโมงแล้ว');resetForm(); }
+    try { await saveRow(row);notify(Number(row.bossId)===LORD_OF_DEATH_ID ? 'บันทึกสำเร็จ · Lord of Death เกิดใหม่ +133 นาทีแล้ว' : 'บันทึกสำเร็จ · ระบบคำนวณเกิดใหม่ +2 ชั่วโมงแล้ว');resetForm(); }
     catch(e){notify(`บันทึกไม่สำเร็จ: ${e.message}`,true);showError(e.message);}
     finally{saving=false;elements.saveBtn.disabled=false;onMapChange();}
   }
