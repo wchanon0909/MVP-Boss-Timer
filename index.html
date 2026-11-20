@@ -502,6 +502,114 @@ body[data-theme="dark"] .element-chip { background:#235f99; }
   .entry-actions button { padding:5px 6px; }
 }
 
+
+/* V1.8: fixed, aligned Size / Race / Element columns; no element levels/colors */
+.entry .boss-attributes {
+  display:grid;
+  grid-template-columns:27% 43% 30%;
+  width:100%; min-width:0;
+  align-items:center; justify-items:stretch;
+  gap:0; text-align:center;
+  overflow:hidden;
+}
+.boss-attributes .attr-value {
+  min-width:0; position:relative;
+  display:block; padding:0 5px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  font-weight:760;
+}
+.boss-attributes .attr-value:not(:last-child)::after {
+  content:'/'; position:absolute; right:0; top:0;
+  font-weight:550; color:#8aa8b9;
+}
+body[data-theme="dark"] .boss-attributes .attr-value:not(:last-child)::after { color:#88a4b7; }
+/* A compact information button replaces the old two-letter monogram. */
+.entry-head .mob-info {
+  display:grid; place-items:center; width:31px; height:31px; flex:0 0 31px;
+  border:1px solid #b4d5e1; border-radius:50%;
+  background:#e5f5f5; color:#178f93; text-decoration:none;
+  font-family:Georgia,serif; font-size:20px; font-weight:bold; font-style:italic;
+  line-height:1;
+}
+.entry-head .mob-info:hover { color:#fff; background:#178f93; border-color:#178f93; text-decoration:none; }
+body[data-theme="dark"] .entry-head .mob-info { background:#284858; border-color:#558da2; color:#96e7df; }
+body[data-theme="dark"] .entry-head .mob-info:hover { background:#246b74; color:#fff; }
+/* MVP gallery trigger beside the native dropdown. */
+.boss-select-line { display:flex; align-items:center; gap:8px; min-width:0; }
+.boss-select-line select { flex:1 1 auto; min-width:0; width:auto; }
+.boss-gallery-trigger {
+  flex:0 0 67px; height:42px; border:1px solid #17a89c; border-radius:9px;
+  background:linear-gradient(125deg,#0eb69f,#078a9f); color:white;
+  display:flex; justify-content:center; align-items:center; gap:3px;
+  font-weight:850; font-size:12px; letter-spacing:.2px;
+}
+.boss-gallery-trigger:hover { background:linear-gradient(125deg,#0db49f,#087487); }
+.boss-gallery-trigger .gallery-star { font-size:12px; }
+body[data-theme="dark"] .boss-gallery-trigger { border-color:#48baad; }
+/* Native <dialog>: scrolling gallery with one compact card per monster. */
+.boss-gallery-dialog {
+  width:min(670px,calc(100vw - 24px)); max-width:670px; max-height:min(700px,86dvh);
+  margin:auto; padding:0; overflow:hidden;
+  border:1px solid var(--line); border-radius:16px;
+  background:var(--panel); color:var(--ink);
+  box-shadow:0 30px 90px #0b243955;
+}
+.boss-gallery-dialog::backdrop { background:rgba(13,32,48,.57); backdrop-filter:blur(3px); }
+.boss-gallery-top {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; padding:13px 16px; border-bottom:1px solid var(--line);
+}
+.boss-gallery-top h3 { font-size:16px; line-height:1.3; margin:0; font-weight:850; }
+.boss-gallery-top p { font-size:11px; margin:2px 0 0; color:var(--muted); }
+.boss-gallery-close {
+  flex:0 0 32px; width:32px; height:32px; border:1px solid var(--line);
+  border-radius:8px; background:var(--panel-soft); color:var(--ink); font-size:21px;
+  line-height:1;
+}
+.boss-gallery-scroll { overflow:auto; max-height:min(606px,calc(86dvh - 65px)); padding:13px; overscroll-behavior:contain; }
+.boss-gallery-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
+.boss-gallery-card {
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+  gap:3px; min-width:0; min-height:108px;
+  border:1px solid var(--line); border-radius:10px; padding:9px 5px 8px;
+  background:var(--panel-soft); color:var(--ink); text-align:center;
+}
+.boss-gallery-card:hover, .boss-gallery-card:focus-visible { background:var(--primary-soft); border-color:var(--primary); }
+.boss-gallery-card[aria-pressed="true"] { border-color:var(--primary); box-shadow:inset 0 0 0 1px var(--primary); }
+.boss-gallery-art { position:relative; height:53px; width:80px; display:grid; place-items:center; }
+.boss-gallery-art img { position:absolute; inset:0; width:80px; height:53px; object-fit:contain; opacity:0; }
+.boss-gallery-art img.loaded { opacity:1; }
+.boss-gallery-placeholder {
+  display:grid; place-items:center; width:36px; height:36px;
+  background:var(--primary-soft); color:var(--primary-deep);
+  border-radius:50%; font-size:11px; font-weight:850;
+}
+.boss-gallery-name {
+  display:block; width:100%; min-width:0; overflow:hidden; white-space:nowrap;
+  text-overflow:ellipsis; font-weight:820; font-size:12px; line-height:1.35;
+}
+.boss-gallery-traits {
+  display:block; width:100%; min-width:0; overflow:hidden; white-space:nowrap;
+  text-overflow:ellipsis; color:var(--muted); font-size:10px; line-height:1.3;
+}
+body[data-theme="dark"] .boss-gallery-dialog { background:var(--panel); border-color:var(--line); }
+body[data-theme="dark"] .boss-gallery-card { background:#1e3347; border-color:#3b546a; color:#f0f7fc; }
+body[data-theme="dark"] .boss-gallery-card:hover { background:#214943; border-color:#5fd6ba; }
+body[data-theme="dark"] .boss-gallery-close { background:#253c50; border-color:#4a667a; color:#deecf5; }
+@media(max-width:730px) {
+  .entry-head .mob-info { width:27px; height:27px; flex-basis:27px; font-size:18px; }
+  .entry .boss-attributes { width:100%; }
+  .boss-gallery-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  .boss-gallery-scroll { padding:9px; }
+  .boss-gallery-card { min-height:105px; padding:8px 4px; }
+}
+@media(max-width:390px) {
+  .entry .boss-attributes .attr-value { padding-inline:2px; font-size:10px; }
+  .boss-gallery-trigger { flex-basis:62px; }
+  .boss-gallery-dialog { width:calc(100vw - 16px); }
+  .boss-gallery-traits { font-size:9.5px; }
+}
+
 </style>
   <script>
 // Boss names and maps adapted from the private-server list provided by the site owner.
@@ -547,7 +655,12 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
       <form id="timerForm" autocomplete="off">
         <div class="field">
           <label for="bossSelect">ชื่อบอส <span class="required">*</span></label>
-          <select id="bossSelect" required><option value="">— เลือกบอส —</option></select>
+          <div class="boss-select-line">
+            <select id="bossSelect" required><option value="">— เลือกบอส —</option></select>
+            <button type="button" id="bossGalleryBtn" class="boss-gallery-trigger" aria-haspopup="dialog" aria-controls="bossGallery" title="เลือกรูปบอส">
+              <span class="gallery-star" aria-hidden="true">✦</span>MVP
+            </button>
+          </div>
         </div>
         <div class="field">
           <div class="label-row"><label for="mapSelect">แมพ <span class="required">*</span></label><a id="mapLink" target="_blank" rel="noopener noreferrer" href="https://ratemyserver.net/?page=mob_db" hidden>ดูแมพ ↗</a></div>
@@ -590,10 +703,17 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
       <div class="list-bottom"><span id="visibleCount">0 รายการ</span><span id="syncStamp">กำลังโหลด...</span></div>
     </section>
   </main>
-  <footer class="footer"><span>MVP Boss Timer · v1.7</span><span>รายชื่อและแมพตามเซิร์ฟเวอร์นี้ · ทุกบอส +2 ชม.</span></footer>
+  <footer class="footer"><span>MVP Boss Timer · v1.8</span><span>รายชื่อและแมพตามเซิร์ฟเวอร์นี้ · ทุกบอส +2 ชม.</span></footer>
 </div>
 <dialog id="deleteDialog" class="confirm">
   <div class="dialog-inner"><div class="dialog-icon">!</div><h3>ลบเวลาบอสนี้?</h3><p id="deleteMessage"></p><div class="dialog-actions"><button id="cancelDelete" type="button" class="btn-outline">ยกเลิก</button><button id="confirmDelete" type="button" class="btn-danger">ยืนยันลบ</button></div></div>
+</dialog>
+<dialog id="bossGallery" class="boss-gallery-dialog" aria-labelledby="galleryTitle">
+  <div class="boss-gallery-top">
+    <div><h3 id="galleryTitle">เลือกบอสจากรูป</h3><p>แตะรูปเพื่อเลือกบอส · Size / Race / Element</p></div>
+    <button type="button" class="boss-gallery-close" id="closeGalleryBtn" aria-label="ปิดหน้าต่างเลือกบอส">×</button>
+  </div>
+  <div class="boss-gallery-scroll"><div id="bossGalleryGrid" class="boss-gallery-grid"></div></div>
 </dialog>
 <div id="toast" role="status" aria-live="polite" class="toast" hidden></div>
 <script>
@@ -649,16 +769,43 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     1373: ["Large", "Demon", "Shadow", 3],
     2087: ["Large", "Insect", "Earth", 3],
   };
+  function attributeLabels(bossId) {
+    const info=BOSS_ATTRIBUTES[Number(bossId)];
+    return info ? info.slice(0,3) : ['—','—','—'];
+  }
   function attributeBar(bossId) {
-    const info = BOSS_ATTRIBUTES[Number(bossId)];
-    if (!info) return '';
-    const [size,race,element,level] = info;
-    const colorClass = element.toLowerCase();
-    const label = `${size} / ${race} / ${element} ${level}`;
-    return `<div class="boss-attributes" title="${safeText(label)} · Source: RateMyServer Pre-Renewal" aria-label="${safeText(label)}">
-      <span class="attr-size">${safeText(size)}</span><span class="attr-slash" aria-hidden="true">/</span><span class="attr-race">${safeText(race)}</span><span class="attr-slash" aria-hidden="true">/</span>
-      <span class="element-chip el-${colorClass}"><span class="element-name">${safeText(element)}</span><span class="element-grade" aria-label="ระดับธาตุ ${level}">${level}</span></span>
+    const [size,race,element]=attributeLabels(bossId);
+    const label=`${size} / ${race} / ${element}`;
+    return `<div class="boss-attributes" title="${safeText(label)}" aria-label="${safeText(label)}">
+      <span class="attr-value attr-size">${safeText(size)}</span>
+      <span class="attr-value attr-race">${safeText(race)}</span>
+      <span class="attr-value attr-element">${safeText(element)}</span>
     </div>`;
+  }
+  function mobDatabaseUrl(bossId) {
+    return `https://ratemyserver.net/index.php?page=mob_db&mob_id=${Number(bossId)}`;
+  }
+  function mobSpriteUrl(bossId) {
+    return `https://file5s.ratemyserver.net/mobs/${Number(bossId)}.gif`;
+  }
+  function buildBossGallery() {
+    const selected=elements.bossSelect.value;
+    $('bossGalleryGrid').innerHTML=BOSSES.map(b=>{
+      const label=attributeLabels(b.id).join(' / ');
+      return `<button type="button" class="boss-gallery-card" data-boss-pick="${safeText(b.key)}"
+          title="${safeText(b.name)} · ${safeText(label)}" aria-label="เลือก ${safeText(b.name)} · ${safeText(label)}" aria-pressed="${b.key===selected}">
+          <span class="boss-gallery-art"><img class="boss-gallery-image" src="${mobSpriteUrl(b.id)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer"><span class="boss-gallery-placeholder">${safeText(b.name.slice(0,2).toUpperCase())}</span></span>
+          <span class="boss-gallery-name">${safeText(b.name)}</span>
+          <span class="boss-gallery-traits">${safeText(label)}</span>
+        </button>`;
+    }).join('');
+  }
+  function openBossGallery() {
+    buildBossGallery();
+    $('bossGallery').showModal();
+    // Keep the existing choice visible when revisiting the gallery.
+    const chosen=$('bossGalleryGrid').querySelector('[aria-pressed="true"]');
+    if(chosen) chosen.scrollIntoView({block:'nearest'});
   }
   const API = String(window.MVP_CONFIG?.API_BASE || '').trim().replace(/\/+$/, '');
   const LOCAL_KEY = 'mvp-tomb-timers-v1';
@@ -872,14 +1019,15 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     const boss=getBossForRow(r.bossId,r.mapId),map=getMap(r.bossId,r.mapId);
     if (!boss || !map) return '';
     const ready=phaseOf(r)==='ready';
-    const monogram=safeText(boss.name.substring(0,2).toUpperCase());
-    const spriteUrl=`https://file5s.ratemyserver.net/mobs/${Number(boss.id)}.gif`;
+    const detailsUrl=mobDatabaseUrl(boss.id);
+    const spriteUrl=mobSpriteUrl(boss.id);
     const mapLink=`https://ratemyserver.net/index.php?map=${encodeURIComponent(r.mapId)}&page=npc_shop_warp&s_block=mob_block`;
     const spawn=new Date(r.spawnAt), tomb=new Date(r.tombAt);
     const day=relativeDay(spawn);
     return `<article class="entry ${ready?'ready':''}" data-row-key="${safeText(keyOf(r.bossId,r.mapId))}">
       <div class="entry-head">
-        <div class="mob-monogram" aria-hidden="true">${monogram}</div>
+        <a class="mob-info" href="${safeText(detailsUrl)}" target="_blank" rel="noopener noreferrer"
+          title="ข้อมูล ${safeText(boss.name)} บน RateMyServer" aria-label="เปิดข้อมูลบอส ${safeText(boss.name)} บน RateMyServer ในแท็บใหม่">i</a>
         <div class="entry-names"><h3 title="${safeText(boss.name)}">${safeText(boss.name)}${ready?'<span class="ready-tag">เกิดแล้ว!</span>':''}</h3><div class="entry-map"><a href="${safeText(mapLink)}" target="_blank" rel="noopener noreferrer">${safeText(r.mapId)} ↗</a><span class="map-name">${safeText(map[1])}</span></div></div>
       </div>
       ${attributeBar(boss.id)}
@@ -1090,8 +1238,31 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     $('themeBtn').addEventListener('click',toggleTheme);
     $('alertBtn').addEventListener('click',toggleAlerts);
     document.addEventListener('error',event=>{
-      if(event.target instanceof HTMLImageElement && event.target.classList.contains('boss-thumb')) event.target.remove();
+      if(event.target instanceof HTMLImageElement) {
+        if(event.target.classList.contains('boss-thumb')) event.target.remove();
+        if(event.target.classList.contains('boss-gallery-image')) {
+          event.target.hidden=true;
+          const fallback=event.target.nextElementSibling;
+          if(fallback) fallback.hidden=false;
+        }
+      }
     },true);
+    $('bossGalleryBtn').addEventListener('click',openBossGallery);
+    $('closeGalleryBtn').addEventListener('click',()=>$('bossGallery').close());
+    $('bossGalleryGrid').addEventListener('click',event=>{
+      const target=event.target.closest('button[data-boss-pick]');
+      if(!target) return;
+      const boss=getBoss(target.dataset.bossPick);
+      if(!boss) return;
+      editingKey=null;
+      elements.bossSelect.value=boss.key;
+      onBossChange();
+      $('bossGallery').close();
+      elements.bossSelect.focus({preventScroll:true});
+    });
+    $('bossGallery').addEventListener('click',event=>{
+      if(event.target===$('bossGallery')) $('bossGallery').close();
+    });
     elements.bossSelect.addEventListener('change',()=>{ editingKey=null; onBossChange(); });
     elements.mapSelect.addEventListener('change',()=>{ editingKey=null; onMapChange(); });
     elements.time.addEventListener('blur',()=>{
