@@ -1,0 +1,42 @@
+BOSS ID | Boss names | Local image path
+1038 | Osiris | assets/mobs/1038.gif
+1039 | Baphomet | assets/mobs/1039.gif
+1046 | Doppelganger1, Doppelganger2 | assets/mobs/1046.gif
+1059 | Mistress | assets/mobs/1059.gif
+1086 | Golden Thief Bug | assets/mobs/1086.gif
+1087 | Orc Hero1, Orc Hero2 | assets/mobs/1087.gif
+1112 | Drake | assets/mobs/1112.gif
+1115 | Eddga1, Eddga2 | assets/mobs/1115.gif
+1147 | Maya1, Maya2 | assets/mobs/1147.gif
+1150 | Moonlight Flower | assets/mobs/1150.gif
+1157 | Pharaoh | assets/mobs/1157.gif
+1159 | Phreeoni | assets/mobs/1159.gif
+1190 | Orc Lord | assets/mobs/1190.gif
+1251 | Stormy Knight | assets/mobs/1251.gif
+1252 | Garm | assets/mobs/1252.gif
+1272 | Dark Lord1, Dark Lord2 | assets/mobs/1272.gif
+1312 | Turtle General | assets/mobs/1312.gif
+1373 | Lord of Death | assets/mobs/1373.gif
+1389 | Dracula | assets/mobs/1389.gif
+1418 | Evil Snake Lord | assets/mobs/1418.gif
+1492 | Incantation Samurai | assets/mobs/1492.gif
+1511 | Amon Ra | assets/mobs/1511.gif
+1583 | Tao Gunka | assets/mobs/1583.gif
+1623 | RSX-0806 | assets/mobs/1623.gif
+1630 | White Lady | assets/mobs/1630.gif
+1658 | Egnigem Cenia | assets/mobs/1658.gif
+1685 | Vesper | assets/mobs/1685.gif
+1688 | Lady Tanee | assets/mobs/1688.gif
+1708 | Thanatos | assets/mobs/1708.gif
+1719 | Detardeurus | assets/mobs/1719.gif
+1734 | Kiel D-01 | assets/mobs/1734.gif
+1751 | Valkyrie Randgris | assets/mobs/1751.gif
+1768 | Gloom Under Night | assets/mobs/1768.gif
+1785 | Atroce1, Atroce2, Atroce3, Atroce4 | assets/mobs/1785.gif
+1832 | Ifrit | assets/mobs/1832.gif
+1871 | Fallen Bishop Hibram | assets/mobs/1871.gif
+1874 | Beelzebub | assets/mobs/1874.gif
+1885 | Gopinich | assets/mobs/1885.gif
+1917 | Wounded Morocc | assets/mobs/1917.gif
+2022 | Nidhoggr's Shadow | assets/mobs/2022.gif
+2087 | Queen Scaraba | assets/mobs/2087.gif

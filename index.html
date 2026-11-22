@@ -806,7 +806,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
       <div class="list-bottom"><span id="visibleCount">0 รายการ</span><span id="syncStamp">กำลังโหลด...</span></div>
     </section>
   </main>
-  <footer class="footer"><span>MVP Boss Timer · v1.12 <span class="footer-credit">· Powered by $a$ha_</span></span><span>รายชื่อและแมพตามเซิร์ฟเวอร์นี้ · ทุกบอส +2 ชม.</span></footer>
+  <footer class="footer"><span>MVP Boss Timer · v1.13 <span class="footer-credit">· Powered by $a$ha_</span></span><span>รายชื่อและแมพตามเซิร์ฟเวอร์นี้ · ทุกบอส +2 ชม.</span></footer>
 </div>
 <dialog id="deleteDialog" class="confirm">
   <div class="dialog-inner"><div class="dialog-icon">!</div><h3>ลบเวลาบอสนี้?</h3><p id="deleteMessage"></p><div class="dialog-actions"><button id="cancelDelete" type="button" class="btn-outline">ยกเลิก</button><button id="confirmDelete" type="button" class="btn-danger">ยืนยันลบ</button></div></div>
@@ -888,8 +888,34 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
   function mobDatabaseUrl(bossId) {
     return `https://ratemyserver.net/index.php?page=mob_db&mob_id=${Number(bossId)}`;
   }
+  // Prefer a sprite hosted in this GitHub Pages repository. An unavailable local
+  // file can fall back to RMS; known RMS placeholder IDs intentionally do not.
   function mobSpriteUrl(bossId) {
+    return `./assets/mobs/${Number(bossId)}.gif`;
+  }
+  function remoteMobSpriteUrl(bossId) {
     return `https://file5s.ratemyserver.net/mobs/${Number(bossId)}.gif`;
+  }
+  // RMS has sometimes returned a valid placeholder image for these IDs.
+  // The browser 'error' event does not fire for such a placeholder.
+  const UNRELIABLE_REMOTE_SPRITES = new Set([1115, 1885]);
+  function fallbackBossSprite(img) {
+    if (!img || !img.dataset) return;
+    const bossId = Number(img.dataset.mobId);
+    if (img.dataset.spriteSource !== 'remote' && !UNRELIABLE_REMOTE_SPRITES.has(bossId)) {
+      img.dataset.spriteSource = 'remote';
+      img.src = remoteMobSpriteUrl(bossId);
+      return;
+    }
+    img.dataset.spriteSource = 'missing';
+    if (img.classList.contains('boss-thumb')) {
+      img.remove();
+    } else if (img.classList.contains('boss-gallery-image')) {
+      img.classList.remove('loaded');
+      img.hidden = true;
+      const fallback=img.nextElementSibling;
+      if (fallback) fallback.classList.remove('is-hidden');
+    }
   }
   function revealBossGalleryImage(img) {
     if (!img || !img.naturalWidth) return;
@@ -922,7 +948,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
       const recorded=b.maps.some(map=>activeKeys.has(keyOf(b.id,map[0])));
       return `<button type="button" class="boss-gallery-card${recorded?' has-timer':''}" data-boss-pick="${safeText(b.key)}" data-recorded="${recorded}"
           title="${safeText(b.name)} · ${safeText(label)}${recorded?' · มีข้อมูลอยู่แล้ว (ยังเลือกได้)':''}" aria-label="เลือก ${safeText(b.name)} · ${safeText(label)}" aria-description="${recorded?'มีรายการในตารางแล้ว แต่ยังเลือกซ้ำได้':'ยังไม่มีรายการในตาราง'}" aria-pressed="${b.key===selected}">
-          <span class="boss-gallery-art"><img class="boss-gallery-image" src="${mobSpriteUrl(b.id)}" alt="" loading="${index<9?'eager':'lazy'}" decoding="async" referrerpolicy="no-referrer" width="134" height="112"><span class="boss-gallery-placeholder">${safeText(b.name.slice(0,2).toUpperCase())}</span></span>
+          <span class="boss-gallery-art"><img class="boss-gallery-image" src="${mobSpriteUrl(b.id)}" data-mob-id="${b.id}" data-sprite-source="local" alt="" loading="${index<9?'eager':'lazy'}" decoding="async" width="134" height="112"><span class="boss-gallery-placeholder">${safeText(b.name.slice(0,2).toUpperCase())}</span></span>
           <span class="boss-gallery-name">${safeText(b.name)}</span>
           <span class="boss-gallery-traits">${safeText(label)}</span>
         </button>`;
@@ -1180,7 +1206,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
         <div class="entry-names"><h3 title="${safeText(boss.name)}">${safeText(boss.name)}${ready?'<span class="ready-tag">เกิดแล้ว!</span>':''}</h3><div class="entry-map"><a href="${safeText(mapLink)}" target="_blank" rel="noopener noreferrer">${safeText(r.mapId)} ↗</a><span class="map-name">${safeText(map[1])}</span></div></div>
       </div>
       ${attributeBar(boss.id)}
-      <img class="boss-thumb" src="${spriteUrl}" alt="" aria-hidden="true" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="43" height="40">
+      <img class="boss-thumb" src="${spriteUrl}" data-mob-id="${boss.id}" data-sprite-source="local" alt="" aria-hidden="true" loading="lazy" decoding="async" width="43" height="40">
       <div class="entry-time">
         <div class="respawn-time"><span class="time-label">${ready?'เกิดแล้ว':'เกิด'}${day!=='วันนี้' ? ' · '+safeText(day) : ''}</span><strong class="respawn-clock">${thaiTime(spawn)}</strong></div>
         <div class="tomb-time"><span class="time-label">ตาย</span><strong>${thaiTime(tomb)}</strong></div>
@@ -1360,7 +1386,9 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     const boss = r ? getBossForRow(r.bossId,r.mapId) : null;
     const element = r ? attributeLabels(r.bossId)[2] : '';
     const spawnTime = r ? thaiTime(new Date(r.spawnAt)) : '';
-    const sprite = boss ? mobSpriteUrl(boss.id) : '';
+    // Keep notifications on the prior sprite URL; the notification icon also
+    // has an own-origin MVP logo fallback in showSystemNotification().
+    const sprite = boss ? remoteMobSpriteUrl(boss.id) : '';
     const originIcon = new URL('./assets/mvp-app-192.png',document.baseURI).href;
     const tag = isTest ? 'mvp-notification-test-'+Date.now() :
       'mvp-'+r.bossId+'-'+r.mapId+'-'+Date.parse(r.spawnAt);
@@ -1507,13 +1535,10 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
       }
     },true);
     document.addEventListener('error',event=>{
-      if(event.target instanceof HTMLImageElement) {
-        if(event.target.classList.contains('boss-thumb')) event.target.remove();
-        if(event.target.classList.contains('boss-gallery-image')) {
-          event.target.hidden=true;
-          const fallback=event.target.nextElementSibling;
-          if(fallback) fallback.classList.remove('is-hidden');
-        }
+      if(event.target instanceof HTMLImageElement &&
+          (event.target.classList.contains('boss-thumb') ||
+           event.target.classList.contains('boss-gallery-image'))) {
+        fallbackBossSprite(event.target);
       }
     },true);
     $('bossGalleryBtn').addEventListener('click',openBossGallery);
