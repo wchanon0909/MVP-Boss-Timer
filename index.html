@@ -874,7 +874,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
       <div class="list-bottom"><span id="visibleCount">0 รายการ</span><span id="syncStamp">กำลังโหลด...</span></div>
     </section>
   </main>
-  <footer class="footer"><span>MVP Boss Timer · v1.14 <span class="footer-credit">· Powered by $a$ha_</span></span><span>รายชื่อ/แมพตามเซิร์ฟเวอร์นี้ · Lord of Death +133 นาที · ตัวอื่น +120 นาที</span></footer>
+  <footer class="footer"><span>MVP Boss Timer · v1.16 <span class="footer-credit">· Powered by $a$ha_</span></span><span>รายชื่อ/แมพตามเซิร์ฟเวอร์นี้ · Lord of Death +133 นาที · ตัวอื่น +120 นาที</span></footer>
 </div>
 <dialog id="deleteDialog" class="confirm">
   <div class="dialog-inner"><div class="dialog-icon">!</div><h3>ลบเวลาบอสนี้?</h3><p id="deleteMessage"></p><div class="dialog-actions"><button id="cancelDelete" type="button" class="btn-outline">ยกเลิก</button><button id="confirmDelete" type="button" class="btn-danger">ยืนยันลบ</button></div></div>
@@ -956,19 +956,15 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
   function mobDatabaseUrl(bossId) {
     return `https://ratemyserver.net/index.php?page=mob_db&mob_id=${Number(bossId)}`;
   }
-  // V1.14: image fallback must NEVER remove a grid child. Removing the img
-  // shifted the time/actions into the picture column when an external GIF failed.
-  // Local GIFs take priority when provided as assets/mobs/<Boss ID>.gif.
+  // V1.16: local-only mob sprites. No remote hotlinking while using the site.
+  // Four IDs use static PNG artwork if the original animated GIF is unavailable.
+  // This choice is shared by the gallery, timer rows and notifications.
+  const STATIC_PNG_MOBS = new Set([1059, 1147, 1623, 1768]);
   function mobSpriteUrl(bossId) {
-    return `./assets/mobs/${Number(bossId)}.gif`;
+    const id = Number(bossId);
+    return `./assets/mobs/${id}.${STATIC_PNG_MOBS.has(id) ? 'png' : 'gif'}`;
   }
-  function remoteMobSpriteUrl(bossId) {
-    return `https://file5s.ratemyserver.net/mobs/${Number(bossId)}.gif`;
-  }
-  // RMS sometimes replies with its OWN logo/placeholder (HTTP 200 and img.onload),
-  // which cannot be distinguished reliably by a normal cross-origin <img>.
-  // Do not use that source for known bad IDs until a verified local GIF is supplied.
-  const UNRELIABLE_REMOTE_SPRITES = new Set([1115, 1885]);
+  // Remote fallback intentionally disabled: some CDN responses are unrelated RMS placeholder images.
   // If a GIF is unavailable, show an explicitly generic picture placeholder.
   // Never claim that a non-monster RMS image is a real boss sprite.
   const UNAVAILABLE_ART = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
@@ -989,7 +985,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
       img.src = UNAVAILABLE_ART;
       img.classList.add('sprite-unavailable');
       img.alt = 'ยังไม่มีรูปบอส';
-      img.title = 'รูปบอสยังไม่พร้อม: เพิ่มไฟล์ assets/mobs/' + id + '.gif เพื่อแสดงรูปจริง';
+      img.title = 'รูปบอสยังไม่พร้อม: เพิ่มไฟล์ ' + mobSpriteUrl(id);
     } else if (img.classList.contains('boss-gallery-image')) {
       img.classList.remove('loaded');
       img.hidden = true;
@@ -998,15 +994,8 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     }
   }
   function fallbackBossSprite(img) {
-    if (!img || !img.dataset) return;
-    const id = Number(img.dataset.mobId);
-    const stage = img.dataset.spriteSource;
-    if (stage === 'unavailable') return;
-    if (stage !== 'remote' && !UNRELIABLE_REMOTE_SPRITES.has(id)) {
-      img.dataset.spriteSource = 'remote';
-      img.src = remoteMobSpriteUrl(id);
-      return;
-    }
+    // A missing or corrupt local GIF is replaced with a safe placeholder.
+    // Do not switch to external URLs; they can return wrong images with HTTP 200.
     markSpriteUnavailable(img);
   }
   function revealBossGalleryImage(img) {
@@ -1505,9 +1494,8 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     const boss = r ? getBossForRow(r.bossId,r.mapId) : null;
     const element = r ? attributeLabels(r.bossId)[2] : '';
     const spawnTime = r ? thaiTime(new Date(r.spawnAt)) : '';
-    // Keep notifications on the prior sprite URL; the notification icon also
-    // has an own-origin MVP logo fallback in showSystemNotification().
-    const sprite = boss ? remoteMobSpriteUrl(boss.id) : '';
+    // Use self-hosted assets for Windows/Chrome/Edge notifications too.
+    const sprite = boss ? new URL(mobSpriteUrl(boss.id), document.baseURI).href : '';
     const originIcon = new URL('./assets/mvp-app-192.png',document.baseURI).href;
     const tag = isTest ? 'mvp-notification-test-'+Date.now() :
       'mvp-'+r.bossId+'-'+r.mapId+'-'+Date.parse(r.spawnAt);
