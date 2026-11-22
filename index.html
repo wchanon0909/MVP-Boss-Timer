@@ -702,6 +702,74 @@ body[data-theme="dark"] .alert-menu-test { color:#a3f6db; background:#21483f; bo
   .alert-menu::before { display:none; }
 }
 @media(max-width:500px) { .top-actions { gap:6px; } }
+
+/* V1.14: image layout hardening. A missing GIF must never shift the time/action
+   columns. All five grid children keep fixed explicit slots on desktop. */
+@media (min-width:901px) {
+  .entry {
+    grid-template-columns: minmax(0,1fr) minmax(166px,235px) 40px 128px 62px;
+    column-gap:8px;
+    row-gap:6px;
+    min-width:0;
+  }
+  .entry > .entry-head { grid-column:1; grid-row:1; min-width:0; }
+  .entry > .boss-attributes { grid-column:2; grid-row:1; min-width:0; }
+  .entry > .boss-thumb { grid-column:3; grid-row:1; width:40px; height:40px; min-width:40px; }
+  .entry > .entry-time { grid-column:4; grid-row:1; min-width:0; gap:7px; }
+  .entry > .entry-actions { grid-column:5; grid-row:1; min-width:0; gap:4px; justify-content:flex-end; }
+  .entry .respawn-clock { font-size:23px; }
+  .entry .tomb-time strong { font-size:12px; }
+  .entry .entry-actions button { padding:6px 7px; }
+}
+@media (min-width:901px) and (max-width:1200px) {
+  .entry { grid-template-columns:minmax(0,1fr) minmax(155px,190px) 34px 110px 56px; column-gap:5px; padding-inline:8px; }
+  .entry > .boss-thumb { width:34px; height:35px; min-width:34px; }
+  .entry .respawn-clock { font-size:20px; }
+  .entry .entry-actions button { padding:5px 6px; }
+  .entry .entry-time { gap:5px; }
+  .entry .boss-attributes { font-size:10px; padding-inline:2px; }
+}
+@media (min-width:731px) and (max-width:900px) {
+  .entry { grid-template-columns:minmax(0,1fr) minmax(150px,195px) 33px; gap:7px; }
+  .entry > .entry-head { grid-column:1; grid-row:1; }
+  .entry > .boss-attributes { grid-column:2; grid-row:1; }
+  .entry > .boss-thumb { grid-column:3; grid-row:1; width:33px; height:34px; }
+  .entry > .entry-time { grid-column:1 / 3; grid-row:2; justify-self:end; margin-right:18px; }
+  .entry > .entry-actions { grid-column:3; grid-row:2; justify-self:end; }
+}
+.boss-thumb.sprite-unavailable {
+  opacity:.78;
+  filter:none;
+  object-fit:contain;
+  padding:3px;
+}
+.boss-gallery-placeholder {
+  flex-direction:column;
+  width:auto;
+  height:auto;
+  min-height:55px;
+  padding:5px 9px;
+  gap:4px;
+  border-radius:10px;
+  color:#6b8292;
+  background:#eaf2f5;
+  font-weight:650;
+}
+.boss-gallery-placeholder svg {
+  width:25px; height:25px; display:block;
+  fill:none; stroke:#93abb7; stroke-width:1.6;
+  stroke-linecap:round; stroke-linejoin:round;
+}
+.boss-gallery-placeholder svg circle { fill:#93abb7; stroke:none; }
+.boss-gallery-placeholder small { white-space:nowrap; font-size:9px; font-weight:650; }
+.boss-gallery-placeholder.is-hidden { display:none; }
+.boss-gallery-card.has-timer .boss-gallery-placeholder {
+  color:#77848c; background:#d5dce1;
+}
+body[data-theme="dark"] .boss-gallery-placeholder {
+  color:#b2c7d4; background:#2b4355;
+}
+body[data-theme="dark"] .boss-thumb.sprite-unavailable { opacity:.85; }
 </style>
   <script>
 // Boss names and maps adapted from the private-server list provided by the site owner.
@@ -806,7 +874,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
       <div class="list-bottom"><span id="visibleCount">0 รายการ</span><span id="syncStamp">กำลังโหลด...</span></div>
     </section>
   </main>
-  <footer class="footer"><span>MVP Boss Timer · v1.13 <span class="footer-credit">· Powered by $a$ha_</span></span><span>รายชื่อและแมพตามเซิร์ฟเวอร์นี้ · ทุกบอส +2 ชม.</span></footer>
+  <footer class="footer"><span>MVP Boss Timer · v1.14 <span class="footer-credit">· Powered by $a$ha_</span></span><span>รายชื่อ/แมพตามเซิร์ฟเวอร์นี้ · Lord of Death +133 นาที · ตัวอื่น +120 นาที</span></footer>
 </div>
 <dialog id="deleteDialog" class="confirm">
   <div class="dialog-inner"><div class="dialog-icon">!</div><h3>ลบเวลาบอสนี้?</h3><p id="deleteMessage"></p><div class="dialog-actions"><button id="cancelDelete" type="button" class="btn-outline">ยกเลิก</button><button id="confirmDelete" type="button" class="btn-danger">ยืนยันลบ</button></div></div>
@@ -888,40 +956,71 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
   function mobDatabaseUrl(bossId) {
     return `https://ratemyserver.net/index.php?page=mob_db&mob_id=${Number(bossId)}`;
   }
-  // Prefer a sprite hosted in this GitHub Pages repository. An unavailable local
-  // file can fall back to RMS; known RMS placeholder IDs intentionally do not.
+  // V1.14: image fallback must NEVER remove a grid child. Removing the img
+  // shifted the time/actions into the picture column when an external GIF failed.
+  // Local GIFs take priority when provided as assets/mobs/<Boss ID>.gif.
   function mobSpriteUrl(bossId) {
     return `./assets/mobs/${Number(bossId)}.gif`;
   }
   function remoteMobSpriteUrl(bossId) {
     return `https://file5s.ratemyserver.net/mobs/${Number(bossId)}.gif`;
   }
-  // RMS has sometimes returned a valid placeholder image for these IDs.
-  // The browser 'error' event does not fire for such a placeholder.
+  // RMS sometimes replies with its OWN logo/placeholder (HTTP 200 and img.onload),
+  // which cannot be distinguished reliably by a normal cross-origin <img>.
+  // Do not use that source for known bad IDs until a verified local GIF is supplied.
   const UNRELIABLE_REMOTE_SPRITES = new Set([1115, 1885]);
-  function fallbackBossSprite(img) {
-    if (!img || !img.dataset) return;
-    const bossId = Number(img.dataset.mobId);
-    if (img.dataset.spriteSource !== 'remote' && !UNRELIABLE_REMOTE_SPRITES.has(bossId)) {
-      img.dataset.spriteSource = 'remote';
-      img.src = remoteMobSpriteUrl(bossId);
-      return;
-    }
-    img.dataset.spriteSource = 'missing';
+  // If a GIF is unavailable, show an explicitly generic picture placeholder.
+  // Never claim that a non-monster RMS image is a real boss sprite.
+  const UNAVAILABLE_ART = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">' +
+    '<rect x="3" y="3" width="42" height="42" rx="10" fill="#EAF4F7" stroke="#BAD4DC" stroke-width="2"/>' +
+    '<circle cx="17" cy="16" r="4" fill="#8CAAB6"/>' +
+    '<path d="M10 34l8-10 6 6 6-9 9 13H10z" fill="#9FBEC4"/>' +
+    '<path d="M13 13l22 22" stroke="#6F8F9D" stroke-width="2.5" stroke-linecap="round"/>' +
+    '</svg>');
+  const imageFailures = new Set();
+  function markSpriteUnavailable(img) {
+    if (!img || !img.dataset || img.dataset.spriteSource === 'unavailable') return;
+    const id = Number(img.dataset.mobId);
+    imageFailures.add(id);
+    img.dataset.spriteSource = 'unavailable';
     if (img.classList.contains('boss-thumb')) {
-      img.remove();
+      // Keep a visible 40px image in the SAME grid column: no reflow or overlap.
+      img.src = UNAVAILABLE_ART;
+      img.classList.add('sprite-unavailable');
+      img.alt = 'ยังไม่มีรูปบอส';
+      img.title = 'รูปบอสยังไม่พร้อม: เพิ่มไฟล์ assets/mobs/' + id + '.gif เพื่อแสดงรูปจริง';
     } else if (img.classList.contains('boss-gallery-image')) {
       img.classList.remove('loaded');
       img.hidden = true;
-      const fallback=img.nextElementSibling;
-      if (fallback) fallback.classList.remove('is-hidden');
+      const placeholder = img.nextElementSibling;
+      if (placeholder) placeholder.classList.remove('is-hidden');
     }
   }
+  function fallbackBossSprite(img) {
+    if (!img || !img.dataset) return;
+    const id = Number(img.dataset.mobId);
+    const stage = img.dataset.spriteSource;
+    if (stage === 'unavailable') return;
+    if (stage !== 'remote' && !UNRELIABLE_REMOTE_SPRITES.has(id)) {
+      img.dataset.spriteSource = 'remote';
+      img.src = remoteMobSpriteUrl(id);
+      return;
+    }
+    markSpriteUnavailable(img);
+  }
   function revealBossGalleryImage(img) {
-    if (!img || !img.naturalWidth) return;
+    if (!img || !img.naturalWidth || img.dataset.spriteSource === 'unavailable') return;
     img.classList.add('loaded');
-    const placeholder=img.nextElementSibling;
+    const placeholder = img.nextElementSibling;
     if (placeholder) placeholder.classList.add('is-hidden');
+  }
+  // Avoid requesting sources already known to be missing when data refreshes.
+  function imageUrlAndSource(bossId) {
+    const id = Number(bossId);
+    return imageFailures.has(id)
+      ? {url:UNAVAILABLE_ART, source:'unavailable'}
+      : {url:mobSpriteUrl(id), source:'local'};
   }
   // Gray out a gallery card only when its boss+map has an item in module 02 or 03.
   // Expired (>5h after spawn) records remain in D1 but are NOT grayed out.
@@ -946,9 +1045,11 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     $('bossGalleryGrid').innerHTML=BOSSES.map((b,index)=>{
       const label=attributeLabels(b.id).join(' / ');
       const recorded=b.maps.some(map=>activeKeys.has(keyOf(b.id,map[0])));
+      const art = imageUrlAndSource(b.id);
+      const unavailable = art.source === 'unavailable';
       return `<button type="button" class="boss-gallery-card${recorded?' has-timer':''}" data-boss-pick="${safeText(b.key)}" data-recorded="${recorded}"
           title="${safeText(b.name)} · ${safeText(label)}${recorded?' · มีข้อมูลอยู่แล้ว (ยังเลือกได้)':''}" aria-label="เลือก ${safeText(b.name)} · ${safeText(label)}" aria-description="${recorded?'มีรายการในตารางแล้ว แต่ยังเลือกซ้ำได้':'ยังไม่มีรายการในตาราง'}" aria-pressed="${b.key===selected}">
-          <span class="boss-gallery-art"><img class="boss-gallery-image" src="${mobSpriteUrl(b.id)}" data-mob-id="${b.id}" data-sprite-source="local" alt="" loading="${index<9?'eager':'lazy'}" decoding="async" width="134" height="112"><span class="boss-gallery-placeholder">${safeText(b.name.slice(0,2).toUpperCase())}</span></span>
+          <span class="boss-gallery-art"><img class="boss-gallery-image" src="${art.url}" data-mob-id="${b.id}" data-sprite-source="${art.source}" alt="" loading="${index<9?'eager':'lazy'}" decoding="async" width="134" height="112"${unavailable?' hidden':''}><span class="boss-gallery-placeholder${unavailable?'':' is-hidden-until-loaded'}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M5 17l5-5 3 3 3-5 3 7"/></svg><small>รูปยังไม่พร้อม</small></span></span>
           <span class="boss-gallery-name">${safeText(b.name)}</span>
           <span class="boss-gallery-traits">${safeText(label)}</span>
         </button>`;
@@ -995,6 +1096,12 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     dialog: $('deleteDialog'), toast: $('toast')
   };
   let records = [];
+  let lastRecordsSignature = null;
+  function rowSignature(rows) {
+    return JSON.stringify(rows.map(r=>[
+      Number(r.bossId),r.mapId,r.tombAt,r.spawnAt,r.updatedAt
+    ]).sort((a,b)=>String(a[0])+a[1] < String(b[0])+b[1] ? -1 : 1));
+  }
   let statusFilter = 'all';
   let pendingDelete = null;
   let editingKey = null;
@@ -1134,7 +1241,13 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
   }
   async function loadRecords(quiet=false) {
     if (!API) {
-      records=localRead(); setMode('local'); showError(''); renderRecords(); checkSpawnNotifications();
+      const next=localRead().map(applyRespawnOverride);
+      const signature=rowSignature(next);
+      const changed=signature!==lastRecordsSignature;
+      records=next; lastRecordsSignature=signature;
+      setMode('local'); showError('');
+      if (changed || phaseSignature()!==lastPhaseSignature) renderRecords();
+      checkSpawnNotifications();
       $('syncStamp').textContent='ข้อมูลบนเครื่อง'; return;
     }
     try {
@@ -1142,10 +1255,16 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data=await res.json();
       if (!Array.isArray(data.rows)) throw new Error('รูปแบบข้อมูลไม่ถูกต้อง');
-      records=data.rows.filter(isValidRow).map(applyRespawnOverride);
+      const next=data.rows.filter(isValidRow).map(applyRespawnOverride);
+      const signature=rowSignature(next);
+      const changed=signature!==lastRecordsSignature;
+      records=next; lastRecordsSignature=signature;
       const serverNow=Date.parse(data.serverNow);
       if (Number.isFinite(serverNow)) serverClockOffset=serverNow-Date.now();
-      setMode('online'); showError(''); renderRecords(); checkSpawnNotifications();
+      setMode('online'); showError('');
+      // An unchanged poll must NOT destroy every <img> and reload remote GIFs.
+      if (changed || phaseSignature()!==lastPhaseSignature) renderRecords();
+      checkSpawnNotifications();
       $('syncStamp').textContent=`ซิงก์ล่าสุด ${thaiTime(new Date())}`;
     } catch(e) {
       setMode('offline');
@@ -1195,7 +1314,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
     if (!boss || !map) return '';
     const ready=phaseOf(r)==='ready';
     const detailsUrl=mobDatabaseUrl(boss.id);
-    const spriteUrl=mobSpriteUrl(boss.id);
+    const art=imageUrlAndSource(boss.id);
     const mapLink=`https://ratemyserver.net/index.php?map=${encodeURIComponent(r.mapId)}&page=npc_shop_warp&s_block=mob_block`;
     const spawn=new Date(r.spawnAt), tomb=new Date(r.tombAt);
     const day=relativeDay(spawn);
@@ -1206,7 +1325,7 @@ window.MVP_BOSSES = [{"id":1511,"name":"Amon Ra","maps":[["moc_pryd06","Inside P
         <div class="entry-names"><h3 title="${safeText(boss.name)}">${safeText(boss.name)}${ready?'<span class="ready-tag">เกิดแล้ว!</span>':''}</h3><div class="entry-map"><a href="${safeText(mapLink)}" target="_blank" rel="noopener noreferrer">${safeText(r.mapId)} ↗</a><span class="map-name">${safeText(map[1])}</span></div></div>
       </div>
       ${attributeBar(boss.id)}
-      <img class="boss-thumb" src="${spriteUrl}" data-mob-id="${boss.id}" data-sprite-source="local" alt="" aria-hidden="true" loading="lazy" decoding="async" width="43" height="40">
+      <img class="boss-thumb${art.source==='unavailable'?' sprite-unavailable':''}" src="${art.url}" data-mob-id="${boss.id}" data-sprite-source="${art.source}" alt="${art.source==='unavailable'?'รูปบอสยังไม่พร้อม':''}" title="${art.source==='unavailable'?'รูปบอสยังไม่พร้อม':''}" aria-hidden="true" loading="lazy" decoding="async" width="43" height="40">
       <div class="entry-time">
         <div class="respawn-time"><span class="time-label">${ready?'เกิดแล้ว':'เกิด'}${day!=='วันนี้' ? ' · '+safeText(day) : ''}</span><strong class="respawn-clock">${thaiTime(spawn)}</strong></div>
         <div class="tomb-time"><span class="time-label">ตาย</span><strong>${thaiTime(tomb)}</strong></div>
